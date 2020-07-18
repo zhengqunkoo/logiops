@@ -61,6 +61,7 @@ add_executable(logid
         backend/hidpp20/features/WirelessDeviceStatus.cpp
         backend/dj/Report.cpp
         ipc/IPCVariant.cpp
+        ipc/IPCInterface.cpp
         ipc/util/VariantTranslator.cpp
         util/mutex_queue.h
         util/workqueue.cpp
