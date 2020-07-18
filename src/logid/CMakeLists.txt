@@ -62,6 +62,7 @@ add_executable(logid
         backend/dj/Report.cpp
         ipc/IPCVariant.cpp
         ipc/IPCInterface.cpp
+        ipc/IPCServer.cpp
         ipc/util/VariantTranslator.cpp
         util/mutex_queue.h
         util/workqueue.cpp
