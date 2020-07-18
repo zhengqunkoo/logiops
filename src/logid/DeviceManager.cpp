@@ -112,15 +112,15 @@ void DeviceManager::removeDevice(std::string path)
     if(receiver != _receivers.end()) {
         _receivers.erase(receiver);
         logPrintf(INFO, "Receiver on %s disconnected", path.c_str());
+        _ipc_interface.removeDevice(path);
     } else {
         auto device = _devices.find(path);
         if(device != _devices.end()) {
             _devices.erase(device);
             logPrintf(INFO, "Device on %s disconnected", path.c_str());
+            _ipc_interface.removeDevice(path);
         }
     }
-
-    _ipc_interface.removeDevice(path);
 }
 
 DeviceManager::IPC::IPC() : ipc::IPCInterface("", "DeviceManager")
@@ -132,6 +132,13 @@ DeviceManager::IPC::IPC() : ipc::IPCInterface("", "DeviceManager")
             true,
             false
     };
+
+    ipc::IPCArgsInfo device_signal_args = {{"device",
+                                            ipc::IPCVariant::TypeInfo('s')}};
+
+    _signals.emplace("deviceAdded", device_signal_args);
+    _signals.emplace("deviceRemoved", device_signal_args);
+
     _properties.emplace("devices", devices);
 }
 
@@ -142,6 +149,8 @@ void DeviceManager::IPC::addDevice(std::string path)
     devices.emplace_back(path);
     dev_property.property = devices;
     _properties["devices"] = dev_property;
+
+    emitSignal("deviceAdded", {ipc::IPCVariant(path)});
 }
 
 void DeviceManager::IPC::removeDevice(std::string path)
@@ -156,4 +165,6 @@ void DeviceManager::IPC::removeDevice(std::string path)
     }
     dev_property.property = devices;
     _properties["devices"] = dev_property;
+
+    emitSignal("deviceRemoved", {ipc::IPCVariant(path)});
 }
