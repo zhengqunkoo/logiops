@@ -115,6 +115,8 @@ void IPCServer::unregisterInterface(const std::string& node, const std::string&
    g_dbus_connection_unregister_object(_connection,
            interface_it->second.registrationId);
 
+   g_dbus_interface_info_unref(interface_it->second.info);
+
    node_it->second.erase(interface_it);
    if(node_it->second.empty())
        _nodes.erase(node_it);
