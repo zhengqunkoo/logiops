@@ -74,16 +74,17 @@ pkg_check_modules(PC_EVDEV libevdev REQUIRED)
 pkg_check_modules(SYSTEMD "systemd")
 pkg_check_modules(LIBCONFIG libconfig REQUIRED)
 pkg_check_modules(LIBUDEV libudev REQUIRED)
+pkg_check_modules(GIO REQUIRED gio-2.0)
 
 find_path(EVDEV_INCLUDE_DIR libevdev/libevdev.h
           HINTS ${PC_EVDEV_INCLUDE_DIRS} ${PC_EVDEV_INCLUDEDIR})
 find_library(EVDEV_LIBRARY
         NAMES evdev libevdev)
 
-include_directories(${EVDEV_INCLUDE_DIR} ${LIBUDEV_INCLUDE_DIRECTORIES})
+include_directories(${EVDEV_INCLUDE_DIR} ${LIBUDEV_INCLUDE_DIRECTORIES} ${GIO_INCLUDE_DIRS})
 
 target_link_libraries(logid ${CMAKE_THREAD_LIBS_INIT} ${EVDEV_LIBRARY} config++
-        ${LIBUDEV_LIBRARIES})
+        ${LIBUDEV_LIBRARIES} ${GIO_LIBRARIES})
 
 install(TARGETS logid DESTINATION bin)
 
