@@ -32,16 +32,22 @@ using namespace logid::ipc;
 IPCServer::IPCServer()
 {
     GError* err;
-    _connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &err);
+    _bus_type = G_BUS_TYPE_SYSTEM;
+    _connection = g_bus_get_sync(_bus_type, nullptr, &err);
 
-    if(!_connection)
-        throw std::runtime_error("Failed to open DBus connection");
+    if(!_connection) {
+        logPrintf(WARN, "Could not open system bus, trying session bus");
+        _bus_type = G_BUS_TYPE_SESSION;
+        _connection = g_bus_get_sync(_bus_type, nullptr, &err);
+        if(!_connection)
+            throw std::runtime_error("Failed to open DBus connection");
+    }
 
     auto* server_ptr = new IPCServer*;
     (*server_ptr) = this;
 
     _gdbus_name = g_bus_own_name_on_connection(_connection, LOGID_DBUS_NAME,
-            G_BUS_NAME_OWNER_FLAGS_NONE, nullptr,
+            G_BUS_NAME_OWNER_FLAGS_NONE, IPCServer::name_acquired_handler,
             IPCServer::name_lost_handler, (gpointer)server_ptr,
             IPCServer::free_gpointer_ptr);
 
@@ -332,6 +338,16 @@ gboolean IPCServer::gdbus_set_property(GDBusConnection *connection,
     return true;
 }
 
+void IPCServer::name_acquired_handler(GDBusConnection *connection,
+        const gchar *name, gpointer user_data)
+{
+    auto* server_ptr = *(IPCServer**)user_data;
+    if(!server_ptr)
+        return;
+
+    logPrintf(DEBUG, "Successfully acquired DBus name %s", name);
+}
+
 void IPCServer::name_lost_handler(GDBusConnection* connection,
         const gchar* name, gpointer user_data)
 {
@@ -339,7 +355,37 @@ void IPCServer::name_lost_handler(GDBusConnection* connection,
     if(!server_ptr)
         return;
 
-    ///TODO: Handle event
+    if(server_ptr->_bus_type == G_BUS_TYPE_SYSTEM) {
+        logPrintf(WARN, "Failed to own %s on system bus, trying session bus.",
+                name);
+        g_dbus_connection_close_sync(server_ptr->_connection, nullptr, nullptr);
+        server_ptr->_bus_type = G_BUS_TYPE_SESSION;
+        server_ptr->_connection = g_bus_get_sync(server_ptr->_bus_type,
+                nullptr, nullptr);
+        g_bus_own_name_on_connection(server_ptr->_connection, LOGID_DBUS_NAME,
+                G_BUS_NAME_OWNER_FLAGS_NONE, IPCServer::name_acquired_handler,
+                IPCServer::name_lost_handler, user_data,
+                IPCServer::free_gpointer_ptr);
+        for(auto& node : server_ptr->_nodes) {
+            for(auto& interface : node.second) {
+                auto* interface_data = new IPCServer*;
+                (*interface_data) = server_ptr;
+                interface.second.registrationId =
+                        g_dbus_connection_register_object(
+                                server_ptr->_connection,
+                                node.first.c_str(),
+                                interface.second.info,
+                                &interface_vtable,
+                                (gpointer)interface_data,
+                                free_gpointer_ptr,
+                                nullptr);
+            }
+        }
+    } else {
+        logPrintf(ERROR, "Failed to own %s on system bus and session bus",
+                name);
+        std::terminate();
+    }
 }
 
 void IPCServer::free_gpointer_ptr(gpointer user_data)

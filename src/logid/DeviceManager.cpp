@@ -123,8 +123,7 @@ void DeviceManager::removeDevice(std::string path)
     _ipc_interface.removeDevice(path);
 }
 
-DeviceManager::IPC::IPC() : ipc::IPCInterface(
-        "/pizza/pixl/logiops/devicemanager", "pizza.pixl.logiops.DeviceManager")
+DeviceManager::IPC::IPC() : ipc::IPCInterface("", "DeviceManager")
 {
     std::vector<ipc::IPCVariant> dev_type(0);
     ipc::IPCProperty devices = {

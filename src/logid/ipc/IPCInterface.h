@@ -48,7 +48,7 @@ namespace ipc
     class IPCInterface
     {
     public:
-        IPCInterface(std::string node, std::string name);
+        IPCInterface(const std::string& node, const std::string& name);
         ~IPCInterface();
 
         /* TODO: In client

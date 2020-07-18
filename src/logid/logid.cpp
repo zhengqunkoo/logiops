@@ -162,10 +162,10 @@ Possible options are:
 
 int main(int argc, char** argv)
 {
-    ipc::server = std::make_shared<ipc::IPCServer>();
-
     CmdlineOptions options{};
     readCliOptions(argc, argv, options);
+
+    ipc::server = std::make_shared<ipc::IPCServer>();
 
     // Read config
     try {

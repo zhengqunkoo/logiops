@@ -28,7 +28,7 @@ extern "C"
 #include <gio/gio.h>
 }
 
-#define LOGID_DBUS_NAME "pizza.pixl.logiops"
+#define LOGID_DBUS_NAME "pizza.pixl.LogiOps"
 #define LOGID_DBUS_OBJECTMANAGER_NODE "/pizza/pixl/logiops"
 
 namespace logid {
@@ -61,6 +61,7 @@ namespace ipc
 
         GIOStream _gio_stream{};
         GDBusConnection* _connection;
+        GBusType _bus_type;
         GDBusObjectManagerServer* _object_manager;
         guint _gdbus_name = 0;
 
@@ -79,6 +80,9 @@ namespace ipc
                 const gchar *sender, const gchar *object_path,
                 const gchar *interface_name, const gchar *property_name,
                 GVariant *value, GError **error, gpointer user_data);
+
+        static void name_acquired_handler(GDBusConnection* connection,
+                const gchar* name, gpointer user_data);
 
         static void name_lost_handler(GDBusConnection* connection,
                 const gchar* name, gpointer user_data);
