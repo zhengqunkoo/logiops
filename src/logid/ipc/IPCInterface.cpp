@@ -46,6 +46,16 @@ void IPCInterface::unregisterInterface()
     }
 }
 
+void logid::ipc::registerAuto(IPCInterface *interface)
+{
+    interface->registerInterface(server.get());
+}
+
+void logid::ipc::unregisterAuto(IPCInterface* interface)
+{
+    interface->unregisterInterface();
+}
+
 void IPCInterface::setProperty(const std::string& property, const IPCVariant& value)
 {
     auto it = _properties.find(property);

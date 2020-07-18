@@ -27,6 +27,7 @@
 #include "backend/hidpp/Device.h"
 #include "Device.h"
 #include "Receiver.h"
+#include "ipc/IPCInterface.h"
 
 namespace logid
 {
@@ -34,14 +35,22 @@ namespace logid
     class DeviceManager : public backend::raw::DeviceMonitor
     {
     public:
-        DeviceManager() = default;
+        DeviceManager();
     protected:
         void addDevice(std::string path) override;
         void removeDevice(std::string path) override;
     private:
+        class IPC : public ipc::IPCInterface
+        {
+        public:
+            IPC();
+            void addDevice(std::string path);
+            void removeDevice(std::string path);
+        };
 
         std::map<std::string, std::shared_ptr<Device>> _devices;
         std::map<std::string, std::shared_ptr<Receiver>> _receivers;
+        IPC _ipc_interface;
     };
 
     extern std::unique_ptr<DeviceManager> device_manager;

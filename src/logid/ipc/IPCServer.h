@@ -92,6 +92,8 @@ namespace ipc
 
         static const GDBusInterfaceVTable interface_vtable;
     };
+
+    extern std::shared_ptr<IPCServer> server;
 }}
 
 #endif //LOGID_IPC_SERVER_H

@@ -257,7 +257,8 @@ namespace ipc
         }
         explicit operator const std::vector<IPCVariant>&() const
         {
-            if(_type.primaryType() != TypeInfo::Dict)
+            if(_type.primaryType() != TypeInfo::Array &&
+               _type.primaryType() != TypeInfo::Struct)
                 throw InvalidType();
             return _array;
         }

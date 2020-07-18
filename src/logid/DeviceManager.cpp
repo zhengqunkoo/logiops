@@ -28,8 +28,18 @@
 using namespace logid;
 using namespace logid::backend;
 
+DeviceManager::DeviceManager() : _ipc_interface ()
+{
+    ipc::registerAuto(&_ipc_interface);
+}
+
 void DeviceManager::addDevice(std::string path)
 {
+    // Check if device already exists
+    if(_devices.find(path) != _devices.end() ||
+        _receivers.find(path) != _receivers.end())
+        return;
+
     bool defaultExists = true;
     bool isReceiver = false;
 
@@ -91,6 +101,8 @@ void DeviceManager::addDevice(std::string path)
             }
         }
     }
+
+    _ipc_interface.addDevice(path);
 }
 
 void DeviceManager::removeDevice(std::string path)
@@ -107,4 +119,42 @@ void DeviceManager::removeDevice(std::string path)
             logPrintf(INFO, "Device on %s disconnected", path.c_str());
         }
     }
+
+    _ipc_interface.removeDevice(path);
+}
+
+DeviceManager::IPC::IPC() : ipc::IPCInterface(
+        "/pizza/pixl/logiops/devicemanager", "pizza.pixl.logiops.DeviceManager")
+{
+    std::vector<ipc::IPCVariant> dev_type(0);
+    ipc::IPCProperty devices = {
+            ipc::IPCVariant(dev_type, ipc::IPCVariant::TypeInfo("as")),
+            ipc::IPCVariant::TypeInfo("as"),
+            true,
+            false
+    };
+    _properties.emplace("devices", devices);
+}
+
+void DeviceManager::IPC::addDevice(std::string path)
+{
+    auto dev_property = _properties["devices"];
+    auto devices = (std::vector<ipc::IPCVariant>&)(dev_property.property);
+    devices.emplace_back(path);
+    dev_property.property = devices;
+    _properties["devices"] = dev_property;
+}
+
+void DeviceManager::IPC::removeDevice(std::string path)
+{
+    auto dev_property = _properties["devices"];
+    auto devices = (std::vector<ipc::IPCVariant>&)(dev_property.property);
+    for(auto it = devices.begin(); it != devices.end(); it++) {
+        if(*it == path) {
+            devices.erase(it);
+            break;
+        }
+    }
+    dev_property.property = devices;
+    _properties["devices"] = dev_property;
 }

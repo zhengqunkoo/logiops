@@ -26,6 +26,7 @@
 #include "logid.h"
 #include "InputDevice.h"
 #include "util/workqueue.h"
+#include "ipc/IPCServer.h"
 
 #define LOGID_VIRTUAL_INPUT_NAME "LogiOps Virtual Input"
 #define DEFAULT_CONFIG_FILE "/etc/logid.cfg"
@@ -47,6 +48,7 @@ std::shared_ptr<Configuration> logid::global_config;
 std::unique_ptr<DeviceManager> logid::device_manager;
 std::unique_ptr<InputDevice> logid::virtual_input;
 std::shared_ptr<workqueue> logid::global_workqueue;
+std::shared_ptr<ipc::IPCServer> logid::ipc::server;
 
 bool logid::kill_logid = false;
 std::mutex logid::device_manager_reload;
@@ -160,6 +162,8 @@ Possible options are:
 
 int main(int argc, char** argv)
 {
+    ipc::server = std::make_shared<ipc::IPCServer>();
+
     CmdlineOptions options{};
     readCliOptions(argc, argv, options);
 
@@ -183,6 +187,13 @@ int main(int argc, char** argv)
 
     // Scan devices, create listeners, handlers, etc.
     device_manager = std::make_unique<DeviceManager>();
+
+    thread::spawn([]() {
+        ipc::server->listen();
+    }, [](std::exception& e) {
+        logPrintf(ERROR, "IPCServer died.");
+        std::terminate();
+    });
 
     while(!kill_logid) {
         device_manager_reload.lock();

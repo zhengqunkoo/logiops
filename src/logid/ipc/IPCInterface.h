@@ -81,6 +81,10 @@ namespace ipc
 
         IPCServer* _server = nullptr;
     };
+
+    // Use global ipc::server
+    void registerAuto(IPCInterface* interface);
+    void unregisterAuto(IPCInterface* interface);
 }}
 
 #endif //LOGID_IPC_INTERFACE_H
