@@ -121,6 +121,8 @@ void DeviceManager::removeDevice(std::string path)
             _ipc_interface.removeDevice(path);
         }
     }
+
+    _ipc_interface.removeDevice(path);
 }
 
 DeviceManager::IPC::IPC() : ipc::IPCInterface("", "DeviceManager")

@@ -162,6 +162,8 @@ Possible options are:
 
 int main(int argc, char** argv)
 {
+    ipc::server = std::make_shared<ipc::IPCServer>();
+
     CmdlineOptions options{};
     readCliOptions(argc, argv, options);
 
@@ -194,6 +196,13 @@ int main(int argc, char** argv)
 
     // Scan devices, create listeners, handlers, etc.
     device_manager = std::make_unique<DeviceManager>();
+
+    thread::spawn([]() {
+        ipc::server->listen();
+    }, [](std::exception& e) {
+        logPrintf(ERROR, "IPCServer died.");
+        std::terminate();
+    });
 
     while(!kill_logid) {
         device_manager_reload.lock();
