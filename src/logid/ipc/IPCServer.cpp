@@ -399,6 +399,7 @@ GDBusInterfaceInfo* IPCServer::_makeInterfaceInfo(IPCInterface* interface)
 {
     auto* info = g_new(GDBusInterfaceInfo, 1);
     info->ref_count = 1;
+    info->annotations = nullptr;
     info->name = g_strdup(interface->name().c_str());
 
     const auto& methods = interface->getFunctions();
