@@ -167,6 +167,13 @@ int main(int argc, char** argv)
 
     ipc::server = std::make_shared<ipc::IPCServer>();
 
+    thread::spawn([]() {
+        ipc::server->listen();
+    }, [](std::exception& e) {
+        logPrintf(ERROR, "IPCServer died: %s", e.what());
+        std::terminate();
+    });
+
     // Read config
     try {
         global_config = std::make_shared<Configuration>(options.config_file);
@@ -187,13 +194,6 @@ int main(int argc, char** argv)
 
     // Scan devices, create listeners, handlers, etc.
     device_manager = std::make_unique<DeviceManager>();
-
-    thread::spawn([]() {
-        ipc::server->listen();
-    }, [](std::exception& e) {
-        logPrintf(ERROR, "IPCServer died.");
-        std::terminate();
-    });
 
     while(!kill_logid) {
         device_manager_reload.lock();

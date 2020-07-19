@@ -44,8 +44,8 @@ namespace logid
         {
         public:
             IPC();
-            void addDevice(std::string path);
-            void removeDevice(std::string path);
+            void addDevice(const std::string& path);
+            void removeDevice(const std::string& path);
         };
 
         std::map<std::string, std::shared_ptr<Device>> _devices;

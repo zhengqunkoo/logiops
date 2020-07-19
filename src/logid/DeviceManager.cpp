@@ -142,7 +142,7 @@ DeviceManager::IPC::IPC() : ipc::IPCInterface("", "DeviceManager")
     _properties.emplace("devices", devices);
 }
 
-void DeviceManager::IPC::addDevice(std::string path)
+void DeviceManager::IPC::addDevice(const std::string& path)
 {
     auto dev_property = _properties["devices"];
     auto devices = (std::vector<ipc::IPCVariant>&)(dev_property.property);
@@ -153,7 +153,7 @@ void DeviceManager::IPC::addDevice(std::string path)
     emitSignal("deviceAdded", {ipc::IPCVariant(path)});
 }
 
-void DeviceManager::IPC::removeDevice(std::string path)
+void DeviceManager::IPC::removeDevice(const std::string& path)
 {
     auto dev_property = _properties["devices"];
     auto devices = (std::vector<ipc::IPCVariant>&)(dev_property.property);

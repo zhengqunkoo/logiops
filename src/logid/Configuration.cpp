@@ -27,7 +27,8 @@ using namespace logid;
 using namespace libconfig;
 using namespace std::chrono;
 
-Configuration::Configuration(const std::string& config_file)
+Configuration::Configuration(const std::string& config_file) :
+    _config_file (config_file), _ipc_interface(this)
 {
     try {
         _config.readFile(config_file.c_str());
@@ -41,6 +42,16 @@ Configuration::Configuration(const std::string& config_file)
         throw e;
     }
 
+    _readConfig();
+    ipc::registerAuto(&_ipc_interface);
+}
+
+Configuration::Configuration() : _ipc_interface(this)
+{
+}
+
+void Configuration::_readConfig()
+{
     const Setting &root = _config.getRoot();
 
     try {
@@ -49,10 +60,10 @@ Configuration::Configuration(const std::string& config_file)
             _worker_threads = worker_count;
             if(_worker_threads < 0)
                 logPrintf(WARN, "Line %d: workers cannot be negative.",
-                        worker_count.getSourceLine());
+                          worker_count.getSourceLine());
         } else {
             logPrintf(WARN, "Line %d: workers must be an integer.",
-                    worker_count.getSourceLine());
+                      worker_count.getSourceLine());
         }
     } catch(const SettingNotFoundException& e) {
         // Ignore
@@ -68,7 +79,7 @@ Configuration::Configuration(const std::string& config_file)
                 _io_timeout = milliseconds((int)timeout);
         } else
             logPrintf(WARN, "Line %d: io_timeout must be a number.",
-                    timeout.getSourceLine());
+                      timeout.getSourceLine());
     } catch(const SettingNotFoundException& e) {
         // Ignore
     }
@@ -106,7 +117,7 @@ Configuration::Configuration(const std::string& config_file)
             for(int i = 0; i < ignore_count; i++) {
                 if(ignore[i].getType() != libconfig::Setting::TypeInt) {
                     logPrintf(WARN, "Line %d: ignore must refer to device PIDs",
-                            ignore[i].getSourceLine());
+                              ignore[i].getSourceLine());
                     if(ignore.isArray())
                         break;
                 } else
@@ -125,7 +136,7 @@ Configuration::Configuration(const std::string& config_file)
                     if(ignore[i].getType() != libconfig::Setting::TypeInt) {
                         logPrintf(WARN, "Line %d: blacklist must refer to "
                                         "device PIDs",
-                                        ignore[i].getSourceLine());
+                                  ignore[i].getSourceLine());
                         if(ignore.isArray())
                             break;
                     } else
@@ -136,6 +147,29 @@ Configuration::Configuration(const std::string& config_file)
             // Ignore
         }
     }
+}
+
+void Configuration::reload()
+{
+    if(_config_file.empty()) {
+        logPrintf(WARN, "No config file loaded, cannot reload.");
+        return;
+    }
+
+    try {
+        _config.readFile(_config_file.c_str());
+    } catch(const FileIOException &e) {
+        logPrintf(ERROR, "I/O Error while reading %s: %s", _config_file.c_str(),
+                  e.what());
+        logPrintf(INFO, "Keeping old configuration.");
+    } catch(const ParseException &e) {
+        logPrintf(ERROR, "Parse error in %s, line %d: %s", e.getFile(),
+                  e.getLine(), e.getError());
+        logPrintf(INFO, "Keeping old configuration.");
+    }
+
+    _readConfig();
+    logPrintf(INFO, "Reloaded configuration successfully.");
 }
 
 libconfig::Setting& Configuration::getSetting(const std::string& path)
@@ -175,4 +209,20 @@ int Configuration::workerCount() const
 std::chrono::milliseconds Configuration::ioTimeout() const
 {
     return _io_timeout;
+}
+
+Configuration::IPC::IPC(Configuration* config) : ipc::IPCInterface("",
+        "Configuration"), _config (config)
+{
+    auto function = std::make_shared<ipc::IPCFunction>();
+    function->function = [c=this->_config](const ipc::IPCFunctionArgs&)
+            ->ipc::IPCFunctionArgs {
+                c->reload();
+                return {};
+            };
+
+    function->args = {};
+    function->responses = {};
+
+    _functions.emplace("reload", function);
 }

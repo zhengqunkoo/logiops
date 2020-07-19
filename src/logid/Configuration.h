@@ -24,6 +24,7 @@
 #include <memory>
 #include <chrono>
 #include <set>
+#include "ipc/IPCInterface.h"
 
 #define LOGID_DEFAULT_IO_TIMEOUT std::chrono::seconds(2)
 #define LOGID_DEFAULT_WORKER_COUNT 4
@@ -34,10 +35,12 @@ namespace logid
     {
     public:
         explicit Configuration(const std::string& config_file);
-        Configuration() = default;
+        Configuration();
         libconfig::Setting& getSetting(const std::string& path);
         std::string getDevice(const std::string& name);
         bool isIgnored(uint16_t pid) const;
+
+        void reload();
 
         class DeviceNotFound : public std::exception
         {
@@ -51,11 +54,25 @@ namespace logid
         std::chrono::milliseconds ioTimeout() const;
         int workerCount() const;
     private:
+        void _readConfig();
+
+        class IPC : public ipc::IPCInterface
+        {
+        public:
+            IPC(Configuration* config);
+        private:
+            void reload();
+            Configuration* _config;
+        };
+
         std::map<std::string, std::string> _device_paths;
         std::set<uint16_t> _ignore_list;
         std::chrono::milliseconds _io_timeout = LOGID_DEFAULT_IO_TIMEOUT;
         int _worker_threads = LOGID_DEFAULT_WORKER_COUNT;
+        std::string _config_file;
         libconfig::Config _config;
+
+        IPC _ipc_interface;
     };
 
     extern std::shared_ptr<Configuration> global_config;
