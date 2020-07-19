@@ -341,6 +341,8 @@ gboolean IPCServer::gdbus_set_property(GDBusConnection *connection,
 void IPCServer::name_acquired_handler(GDBusConnection *connection,
         const gchar *name, gpointer user_data)
 {
+    (void)connection; // Suppress unused warning
+
     auto* server_ptr = *(IPCServer**)user_data;
     if(!server_ptr)
         return;
@@ -351,6 +353,8 @@ void IPCServer::name_acquired_handler(GDBusConnection *connection,
 void IPCServer::name_lost_handler(GDBusConnection* connection,
         const gchar* name, gpointer user_data)
 {
+    (void)connection; // Suppress unused warning
+
     auto* server_ptr = *(IPCServer**)user_data;
     if(!server_ptr)
         return;
