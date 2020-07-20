@@ -35,6 +35,7 @@ namespace logid
         std::shared_ptr<backend::dj::Receiver> rawReceiver();
 
         const std::string& path() const;
+        int deviceId() const;
 
     protected:
         void addDevice(backend::hidpp::DeviceConnectionEvent event) override;

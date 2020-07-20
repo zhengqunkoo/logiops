@@ -31,24 +31,14 @@ namespace logid
     class Receiver;
     class DeviceManager;
 
-    class DeviceConfig
-    {
-    public:
-        DeviceConfig(const std::shared_ptr<Configuration>& config, Device*
-        device);
-        libconfig::Setting& getSetting(const std::string& path);
-    private:
-        Device* _device;
-        std::string _root_setting;
-        std::shared_ptr<Configuration> _config;
-    };
-
     /* TODO: Implement HID++ 1.0 support
      * Currently, the logid::Device class has a hardcoded requirement
      * for an HID++ 2.0 device.
      */
     class Device
     {
+    private:
+        class Config;
     public:
         Device(std::string path, backend::hidpp::DeviceIndex index,
                 DeviceManager* manager);
@@ -61,7 +51,7 @@ namespace logid
         std::string name();
         uint16_t pid();
 
-        DeviceConfig& config();
+        Config& config();
         backend::hidpp20::Device& hidpp20();
 
         void wakeup();
@@ -95,17 +85,43 @@ namespace logid
             } catch (features::UnsupportedFeature& e) {
             }
         }
+        class IPC;
+        class Config
+        {
+        public:
+            friend IPC;
+            Config(const std::shared_ptr<Configuration>& config, Device*
+            device);
+            libconfig::Setting& getSetting(const std::string& path);
+        private:
+            Device* _device;
+            std::string _root_setting;
+            std::shared_ptr<Configuration> _config;
+        };
 
         backend::hidpp20::Device _hidpp20;
         std::string _path;
         backend::hidpp::DeviceIndex _index;
         std::map<std::string, std::shared_ptr<features::DeviceFeature>>
             _features;
-        DeviceConfig _config;
+        Config _config;
 
         Receiver* _receiver;
         DeviceManager* _manager;
         int _device_id;
+
+        class IPC : public ipc::IPCInterface
+        {
+        public:
+            explicit IPC(Device* device);
+            void sleep();
+            void wakeup();
+            void initFeatures();
+        private:
+            Device* _device;
+        };
+
+        IPC _ipc_interface;
 
         void _makeResetMechanism();
         std::unique_ptr<std::function<void()>> _reset_mechanism;

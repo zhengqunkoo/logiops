@@ -101,6 +101,11 @@ const std::string& Receiver::path() const
     return _path;
 }
 
+int Receiver::deviceId() const
+{
+    return _device_id;
+}
+
 std::shared_ptr<dj::Receiver> Receiver::rawReceiver()
 {
     return receiver();
