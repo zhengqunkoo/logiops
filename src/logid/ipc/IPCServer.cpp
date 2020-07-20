@@ -506,6 +506,7 @@ GDBusInterfaceInfo* IPCServer::_makeInterfaceInfo(IPCInterface* interface)
         info->signals[i] = g_new(GDBusSignalInfo, 1);
         info->signals[i]->ref_count = 1;
         info->signals[i]->name = g_strdup(it.first.c_str());
+        info->signals[i]->annotations = nullptr;
 
         const auto& args = it.second;
         if(args.empty()) {
