@@ -29,6 +29,7 @@ namespace logid
 {
     class Device;
     class Receiver;
+    class DeviceManager;
 
     class DeviceConfig
     {
@@ -49,10 +50,13 @@ namespace logid
     class Device
     {
     public:
-        Device(std::string path, backend::hidpp::DeviceIndex index);
+        Device(std::string path, backend::hidpp::DeviceIndex index,
+                DeviceManager* manager);
         Device(const std::shared_ptr<backend::raw::RawDevice>& raw_device,
-                backend::hidpp::DeviceIndex index);
-        Device(Receiver* receiver, backend::hidpp::DeviceIndex index);
+                backend::hidpp::DeviceIndex index, DeviceManager* manager);
+        Device(Receiver* receiver, backend::hidpp::DeviceIndex index,
+            DeviceManager* manager);
+        ~Device();
 
         std::string name();
         uint16_t pid();
@@ -100,6 +104,8 @@ namespace logid
         DeviceConfig _config;
 
         Receiver* _receiver;
+        DeviceManager* _manager;
+        int _device_id;
 
         void _makeResetMechanism();
         std::unique_ptr<std::function<void()>> _reset_mechanism;

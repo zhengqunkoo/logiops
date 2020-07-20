@@ -17,6 +17,7 @@
  */
 
 #include "Receiver.h"
+#include "DeviceManager.h"
 #include "util/log.h"
 #include "backend/hidpp10/Error.h"
 #include "backend/hidpp20/Error.h"
@@ -25,9 +26,15 @@
 using namespace logid;
 using namespace logid::backend;
 
-Receiver::Receiver(const std::string& path) :
-    dj::ReceiverMonitor(path), _path (path)
+Receiver::Receiver(const std::string& path, DeviceManager* manager) :
+    dj::ReceiverMonitor(path), _path (path), _manager (manager)
 {
+    _device_id = _manager->newDeviceId(true);
+}
+
+Receiver::~Receiver()
+{
+    _manager->dropDeviceId(_device_id, true);
 }
 
 void Receiver::addDevice(hidpp::DeviceConnectionEvent event)
@@ -64,7 +71,7 @@ void Receiver::addDevice(hidpp::DeviceConnectionEvent event)
         }
 
         std::shared_ptr<Device> device = std::make_shared<Device>(this,
-                event.index);
+                event.index, _manager);
 
         _devices.emplace(event.index, device);
 

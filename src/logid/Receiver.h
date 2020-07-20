@@ -25,12 +25,17 @@
 
 namespace logid
 {
+    class DeviceManager;
+
     class Receiver : public backend::dj::ReceiverMonitor
     {
     public:
-        explicit Receiver(const std::string& path);
-        const std::string& path() const;
+        Receiver(const std::string& path, DeviceManager* manager);
+        ~Receiver();
         std::shared_ptr<backend::dj::Receiver> rawReceiver();
+
+        const std::string& path() const;
+
     protected:
         void addDevice(backend::hidpp::DeviceConnectionEvent event) override;
         void removeDevice(backend::hidpp::DeviceIndex index) override;
@@ -38,6 +43,10 @@ namespace logid
         std::mutex _devices_change;
         std::map<backend::hidpp::DeviceIndex, std::shared_ptr<Device>> _devices;
         std::string _path;
+
+        int _device_id;
+
+        DeviceManager* _manager;
     };
 }
 

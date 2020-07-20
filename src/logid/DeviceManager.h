@@ -36,6 +36,9 @@ namespace logid
     {
     public:
         DeviceManager();
+
+        int newDeviceId(bool receiver=false);
+        void dropDeviceId(int id, bool receiver=false);
     protected:
         void addDevice(std::string path) override;
         void removeDevice(std::string path) override;
@@ -44,13 +47,20 @@ namespace logid
         {
         public:
             IPC();
-            void addDevice(const std::string& path);
-            void removeDevice(const std::string& path);
+            void addDevice(const std::string& name);
+            void removeDevice(const std::string& name);
+            void addReceiver(const std::string& name);
+            void removeReceiver(const std::string& name);
         };
+
+        std::mutex _device_id_lock;
+        std::set<int> _device_ids;
 
         std::map<std::string, std::shared_ptr<Device>> _devices;
         std::map<std::string, std::shared_ptr<Receiver>> _receivers;
         IPC _ipc_interface;
+    public:
+        IPC& ipc();
     };
 
     extern std::unique_ptr<DeviceManager> device_manager;
