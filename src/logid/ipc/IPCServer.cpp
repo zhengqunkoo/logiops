@@ -430,7 +430,7 @@ GDBusInterfaceInfo* IPCServer::_makeInterfaceInfo(IPCInterface* interface)
             // Null-terminate
             info->methods[i]->in_args[in_args.size()] = nullptr;
 
-            for(std::size_t j = 0; j < in_args.size(); i++) {
+            for(std::size_t j = 0; j < in_args.size(); j++) {
                 info->methods[i]->in_args[j] = g_new(GDBusArgInfo, 1);
                 info->methods[i]->in_args[j]->annotations = nullptr;
                 info->methods[i]->in_args[j]->name = g_strdup(
@@ -451,7 +451,7 @@ GDBusInterfaceInfo* IPCServer::_makeInterfaceInfo(IPCInterface* interface)
             // Null-terminate
             info->methods[i]->out_args[out_args.size()] = nullptr;
 
-            for(std::size_t j = 0; j < out_args.size(); i++) {
+            for(std::size_t j = 0; j < out_args.size(); j++) {
                 info->methods[i]->out_args[j] = g_new(GDBusArgInfo, 1);
                 info->methods[i]->out_args[j]->annotations = nullptr;
                 info->methods[i]->out_args[j]->name = g_strdup(

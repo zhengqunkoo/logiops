@@ -89,8 +89,8 @@ IPCVariant::IPCVariant(const IPCVariant& o) :
 
 IPCVariant::IPCVariant(IPCVariant&& o) noexcept : _array
         (std::move(o._array)), _dict (std::move(o._dict)), _num_data
-        (std::exchange(_num_data, 0)), _string_data (std::move(o._string_data)),
-        _type (std::move(o._type))
+        (std::exchange(o._num_data, 0)),
+        _string_data (std::move(o._string_data)), _type (std::move(o._type))
 {
 }
 
@@ -284,7 +284,7 @@ IPCVariant::TypeInfo::TypeInfo(TypeInfo&& o) :
 {
 }
 
-IPCVariant::TypeInfo::TypeInfo(Type t) : _type (t)
+IPCVariant::TypeInfo::TypeInfo(Type t) : _type (t), _type_signature (1, t)
 {
     if(t == None || t == Array || t == Struct || t == Dict)
         throw InvalidType();
@@ -396,7 +396,7 @@ bool IPCVariant::TypeInfo::operator==(const TypeInfo& other) const
 
 bool IPCVariant::TypeInfo::operator!=(const TypeInfo& other) const
 {
-    return other.typeSignature() == _type_signature;
+    return other.typeSignature() != _type_signature;
 }
 
 const IPCVariant::TypeInfo& IPCVariant::TypeInfo::arrayType() const
