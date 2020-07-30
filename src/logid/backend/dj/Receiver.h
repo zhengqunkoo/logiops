@@ -150,6 +150,23 @@ namespace dj
             PowerSwitchLocation powerSwitchLocation;
         };
 
+        enum class PairingError : uint8_t
+        {
+            Reserved = 0x0,
+            Timeout = 0x1,
+            UnsupportedDevice = 0x2,
+            TooManyDevices = 0x3,
+            /* 0x4, 0x5 are reserved */
+            ConnectionTimeout = 0x6
+        };
+
+        struct PairingLockEvent
+        {
+            bool lockingOpen;
+            bool isError;
+            PairingError error;
+        };
+
         struct PairingInfo getPairingInfo(hidpp::DeviceIndex index);
         struct ExtendedPairingInfo getExtendedPairingInfo(hidpp::DeviceIndex
                 index);
@@ -159,6 +176,8 @@ namespace dj
         static hidpp::DeviceIndex deviceDisconnectionEvent(
                 const hidpp::Report& report);
         static hidpp::DeviceConnectionEvent deviceConnectionEvent(
+                const hidpp::Report& report);
+        static PairingLockEvent pairingLockEvent(
                 const hidpp::Report& report);
 
         void listen();

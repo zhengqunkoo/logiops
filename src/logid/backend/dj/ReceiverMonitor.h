@@ -46,10 +46,12 @@ namespace dj
         void waitForDevice(hidpp::DeviceIndex index);
 
         // Internal methods for derived class
-        void _pair(uint8_t timeout = 0);
-        void _stopPairing();
+        void pair(uint8_t timeout = 0);
+        void stopPairing();
 
-        void _unpair();
+        virtual void lockingChange(Receiver::PairingLockEvent event) = 0;
+
+        void unpair(hidpp::DeviceIndex index);
 
         std::shared_ptr<Receiver> receiver() const;
     private:

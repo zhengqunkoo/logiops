@@ -55,7 +55,8 @@ void ReceiverMonitor::run()
                 std::make_shared<hidpp::EventHandler>();
         event_handler->condition = [](hidpp::Report &report) -> bool {
             return (report.subId() == Receiver::DeviceConnection ||
-                    report.subId() == Receiver::DeviceDisconnection);
+                    report.subId() == Receiver::DeviceDisconnection ||
+                    report.subId() == Receiver::LockingChange);
         };
 
         event_handler->callback = [this](hidpp::Report &report) -> void {
@@ -63,12 +64,15 @@ void ReceiverMonitor::run()
              * receiver may be enumerating.
              */
             task::spawn({[this, report]() {
-                if (report.subId() == Receiver::DeviceConnection)
+                if(report.subId() == Receiver::DeviceConnection)
                     this->addDevice(this->_receiver->deviceConnectionEvent
                     (report));
-                else if (report.subId() == Receiver::DeviceDisconnection)
+                else if(report.subId() == Receiver::DeviceDisconnection)
                     this->removeDevice(this->_receiver->
                             deviceDisconnectionEvent(report));
+                else if(report.subId() == Receiver::LockingChange)
+                    this->lockingChange(
+                            this->_receiver->pairingLockEvent(report));
             }}, {[report, path=this->_receiver->rawDevice()->hidrawPath()]
             (std::exception& e) {
                 if(report.subId() == Receiver::DeviceConnection)
@@ -79,6 +83,10 @@ void ReceiverMonitor::run()
                     logPrintf(ERROR, "Failed to remove device %d from "
                                       "receiver on %s: %s", report.deviceIndex()
                                       ,path.c_str(), e.what());
+                else if(report.subId() == Receiver::LockingChange)
+                    logPrintf(ERROR, "Failed to handle receiver lock change "
+                                     "event on %s: %s", report.deviceIndex(),
+                                     e.what());
             }});
         };
 
@@ -134,4 +142,19 @@ void ReceiverMonitor::waitForDevice(hidpp::DeviceIndex index)
 std::shared_ptr<Receiver> ReceiverMonitor::receiver() const
 {
     return _receiver;
+}
+
+void ReceiverMonitor::pair(uint8_t timeout)
+{
+    _receiver->startPairing(timeout);
+}
+
+void ReceiverMonitor::stopPairing()
+{
+    _receiver->stopPairing();
+}
+
+void ReceiverMonitor::unpair(hidpp::DeviceIndex index)
+{
+    _receiver->disconnect(index);
 }

@@ -40,14 +40,29 @@ namespace logid
     protected:
         void addDevice(backend::hidpp::DeviceConnectionEvent event) override;
         void removeDevice(backend::hidpp::DeviceIndex index) override;
+        void lockingChange(backend::dj::Receiver::PairingLockEvent event)
+            override;
     private:
         std::mutex _devices_change;
         std::map<backend::hidpp::DeviceIndex, std::shared_ptr<Device>> _devices;
         std::string _path;
 
+        DeviceManager* _manager;
         int _device_id;
 
-        DeviceManager* _manager;
+        class IPC : public ipc::IPCInterface
+        {
+        public:
+            IPC(Receiver* receiver);
+            void devicePaired(const std::string& name);
+            void deviceUnpaired(const std::string& name);
+            void pairingLockStatus(bool locked, bool isError, const
+                std::string& error);
+        private:
+            Receiver* _receiver;
+        };
+
+        IPC _ipc_interface;
     };
 }
 

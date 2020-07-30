@@ -88,14 +88,19 @@ void Device::_init()
     _hidpp20.listen();
 }
 
-std::string Device::name()
+const std::string& Device::name() const
 {
     return _hidpp20.name();
 }
 
-uint16_t Device::pid()
+uint16_t Device::pid() const
 {
     return _hidpp20.pid();
+}
+
+int Device::deviceId() const
+{
+    return _device_id;
 }
 
 void Device::sleep()

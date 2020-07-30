@@ -48,8 +48,9 @@ namespace logid
             DeviceManager* manager);
         ~Device();
 
-        std::string name();
-        uint16_t pid();
+        const std::string& name() const;
+        uint16_t pid() const;
+        int deviceId() const;
 
         Config& config();
         backend::hidpp20::Device& hidpp20();

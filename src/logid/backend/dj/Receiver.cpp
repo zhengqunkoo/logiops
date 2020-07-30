@@ -105,7 +105,6 @@ uint8_t Receiver::getConnectionState(hidpp::DeviceIndex index)
 
 void Receiver::startPairing(uint8_t timeout)
 {
-    ///TODO: Device number == Device index?
     std::vector<uint8_t> request(3);
 
     request[0] = 1;
@@ -118,7 +117,6 @@ void Receiver::startPairing(uint8_t timeout)
 
 void Receiver::stopPairing()
 {
-    ///TODO: Device number == Device index?
     std::vector<uint8_t> request(3);
 
     request[0] = 2;
@@ -130,7 +128,6 @@ void Receiver::stopPairing()
 
 void Receiver::disconnect(hidpp::DeviceIndex index)
 {
-    ///TODO: Device number == Device index?
     std::vector<uint8_t> request(3);
 
     request[0] = 3;
@@ -246,6 +243,26 @@ hidpp::DeviceConnectionEvent Receiver::deviceConnectionEvent(const
 
     event.pid =(report.paramBegin()[2] << 8);
     event.pid |= report.paramBegin()[1];
+
+    return event;
+}
+
+Receiver::PairingLockEvent Receiver::pairingLockEvent(const hidpp::Report
+    &report)
+{
+    assert(report.subId() == LockingChange);
+
+    PairingLockEvent event{};
+
+    event.lockingOpen = report.address();
+    event.isError = (bool)report.paramBegin()[0];
+    if(event.isError) {
+        uint8_t code = report.paramBegin()[0];
+        // Set reserved values to 0
+        if(code == 0x4 || code == 0x5 || code > 0x6)
+            code = 0;
+        event.error = static_cast<PairingError>(code);
+    }
 
     return event;
 }

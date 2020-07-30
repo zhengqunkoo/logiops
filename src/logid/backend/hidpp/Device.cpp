@@ -224,7 +224,7 @@ void Device::sendReportNoResponse(Report &report)
     _raw_device->sendReportNoResponse(report.rawReport());
 }
 
-std::string Device::name() const
+const std::string& Device::name() const
 {
     return _name;
 }
