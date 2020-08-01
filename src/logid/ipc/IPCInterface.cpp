@@ -22,16 +22,9 @@
 
 using namespace logid::ipc;
 
-IPCInterface::IPCInterface(const std::string& node, const std::string& name)
+IPCInterface::IPCInterface(const std::string& node, const std::string& name) :
+    _node (node), _name (name)
 {
-    if(node.empty())
-        _node = LOGID_DBUS_OBJECTMANAGER_NODE;
-    else
-        _node = LOGID_DBUS_OBJECTMANAGER_NODE "/" + node;
-    if(name.empty())
-        _name = LOGID_DBUS_NAME;
-    else
-        _name = LOGID_DBUS_NAME "." + name;
 }
 
 IPCInterface::~IPCInterface()
@@ -121,12 +114,26 @@ void IPCInterface::emitSignal(const std::string& signal,
     _server->emitSignal(this, signal, args);
 }
 
-const std::string& IPCInterface::name() const
+const std::string IPCInterface::name(bool full) const
 {
-    return _name;
+    if(full) {
+        if(_name.empty())
+            return LOGID_DBUS_NAME;
+        else
+            return LOGID_DBUS_NAME "." + _name;
+    } else {
+        return _name;
+    }
 }
 
-const std::string& IPCInterface::node() const
+const std::string IPCInterface::node(bool full) const
 {
-    return _node;
+    if(full) {
+        if(_node.empty())
+            return LOGID_DBUS_OBJECTMANAGER_NODE;
+        else
+            return LOGID_DBUS_OBJECTMANAGER_NODE "/" + _node;
+    } else {
+        return _node;
+    }
 }

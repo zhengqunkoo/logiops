@@ -33,7 +33,7 @@ namespace ipc
     struct IPCFunction
     {
         IPCArgsInfo args;
-        IPCArgsInfo responses;
+        IPCArgsInfo response;
         std::function<IPCFunctionArgs(const IPCFunctionArgs&)> function;
     };
 
@@ -69,8 +69,8 @@ namespace ipc
 
         void emitSignal(const std::string& signal, const IPCFunctionArgs& args);
 
-        const std::string& name() const;
-        const std::string& node() const;
+        const std::string name(bool full=false) const;
+        const std::string node(bool full=false) const;
     protected:
         std::map<std::string, std::shared_ptr<IPCFunction>> _functions;
         std::map<std::string, IPCProperty> _properties;

@@ -221,8 +221,5 @@ Configuration::IPC::IPC(Configuration* config) : ipc::IPCInterface("",
                 return {};
             };
 
-    function->args = {};
-    function->responses = {};
-
     _functions.emplace("reload", function);
 }

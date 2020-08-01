@@ -140,6 +140,11 @@ hidpp20::Device& Device::hidpp20()
     return _hidpp20;
 }
 
+const Device::IPC& Device::ipc() const
+{
+    return _ipc_interface;
+}
+
 void Device::_makeResetMechanism()
 {
     try {

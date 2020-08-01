@@ -39,6 +39,7 @@ namespace logid
     {
     private:
         class Config;
+        class IPC;
     public:
         Device(std::string path, backend::hidpp::DeviceIndex index,
                 DeviceManager* manager);
@@ -54,6 +55,8 @@ namespace logid
 
         Config& config();
         backend::hidpp20::Device& hidpp20();
+
+        const IPC& ipc() const;
 
         void wakeup();
         void sleep();

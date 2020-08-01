@@ -93,14 +93,14 @@ void IPCServer::registerInterface(IPCInterface *ipc_interface)
     auto* info = _makeInterfaceInfo(ipc_interface);
 
     auto registration_id = g_dbus_connection_register_object(_connection,
-            ipc_interface->node().c_str(),
+            ipc_interface->node(true).c_str(),
             info, /// TODO: Warning: mixing shared_ptr with raw ptr
             &interface_vtable,
             (gpointer)server_ptr,
             free_gpointer_ptr,
             nullptr);
 
-    _nodes[ipc_interface->node()][ipc_interface->name()] = {
+    _nodes[ipc_interface->node(true)][ipc_interface->name(true)] = {
             ipc_interface,
             registration_id,
             info
@@ -141,7 +141,7 @@ void IPCServer::emitSignal(IPCInterface *interface, const std::string &signal,
     }
 
     if(!g_dbus_connection_emit_signal(_connection, nullptr,
-            interface->node().c_str(), interface->name().c_str(),
+            interface->node(true).c_str(), interface->name(true).c_str(),
             signal.c_str(), gparams, nullptr))
         throw std::runtime_error("signal broadcast failed");
 }
@@ -404,7 +404,7 @@ GDBusInterfaceInfo* IPCServer::_makeInterfaceInfo(IPCInterface* interface)
     auto* info = g_new(GDBusInterfaceInfo, 1);
     info->ref_count = 1;
     info->annotations = nullptr;
-    info->name = g_strdup(interface->name().c_str());
+    info->name = g_strdup(interface->name(true).c_str());
 
     const auto& methods = interface->getFunctions();
     if(methods.empty()) {
@@ -441,7 +441,7 @@ GDBusInterfaceInfo* IPCServer::_makeInterfaceInfo(IPCInterface* interface)
             }
         }
 
-        const auto& out_args = it.second->responses;
+        const auto& out_args = it.second->response;
 
         if(out_args.empty()) {
             info->methods[i]->out_args = nullptr;

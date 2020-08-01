@@ -43,6 +43,10 @@ namespace features
         }
         virtual void configure() = 0;
         virtual void listen() = 0;
+        Device* device()
+        {
+            return _device;
+        }
         class Config
         {
         public:

@@ -66,6 +66,9 @@ DPI::DPI(Device* device) : DeviceFeature(device), _config (device)
     } catch (hidpp20::UnsupportedFeature& e) {
         throw UnsupportedFeature();
     }
+
+    _ipc_interface = std::make_shared<IPC>(this);
+    ipc::registerAuto(_ipc_interface.get());
 }
 
 void DPI::configure()
@@ -103,12 +106,29 @@ void DPI::setDPI(uint16_t dpi, uint8_t sensor)
     hidpp20::AdjustableDPI::SensorDPIList dpi_list;
     if(_dpi_lists.size() <= sensor) {
         dpi_list = _adjustable_dpi->getSensorDPIList(sensor);
-        for(std::size_t i = _dpi_lists.size()-1; i <= sensor; i++) {
+        for(std::size_t i = _dpi_lists.size(); i <= sensor; i++) {
             _dpi_lists.push_back(_adjustable_dpi->getSensorDPIList(i));
         }
     }
     dpi_list = _dpi_lists[sensor];
     _adjustable_dpi->setSensorDPI(sensor, getClosestDPI(dpi_list, dpi));
+}
+
+uint8_t DPI::getSensorCount()
+{
+    return _adjustable_dpi->getSensorCount();
+}
+
+hidpp20::AdjustableDPI::SensorDPIList DPI::getSupportedDPIs(uint8_t sensor)
+{
+    if(_dpi_lists.size() <= sensor) {
+        auto dpi_list = _adjustable_dpi->getSensorDPIList(sensor);
+        for(std::size_t i = _dpi_lists.size(); i <= sensor; i++) {
+            _dpi_lists.push_back(_adjustable_dpi->getSensorDPIList(i));
+        }
+        return dpi_list;
+    }
+    return _dpi_lists[sensor];
 }
 
 /* Some devices have multiple sensors, but an older config format
@@ -142,4 +162,68 @@ uint8_t DPI::Config::getSensorCount()
 uint16_t DPI::Config::getDPI(uint8_t sensor)
 {
     return _dpis[sensor];
+}
+
+DPI::IPC::IPC(DPI *dpi) : ipc::IPCInterface(dpi->device()->ipc().node() +
+    "/dpi", "DPI"), _dpi (dpi)
+{
+    auto get_function = std::make_shared<ipc::IPCFunction>();
+    get_function->args.emplace_back("sensor", ipc::IPCVariant::TypeInfo::Byte);
+    get_function->response.emplace_back("dpi", ipc::IPCVariant::TypeInfo::UInt16);
+
+    get_function->function = [this](const ipc::IPCFunctionArgs& args)->
+            ipc::IPCFunctionArgs {
+        return {ipc::IPCVariant(_dpi->getDPI(args[0]))};
+    };
+
+    auto set_function = std::make_shared<ipc::IPCFunction>();
+    set_function->args.emplace_back("sensor", ipc::IPCVariant::TypeInfo::Byte);
+    set_function->args.emplace_back("dpi", ipc::IPCVariant::TypeInfo::UInt16);
+
+    set_function->function = [this](const ipc::IPCFunctionArgs& args)->
+            ipc::IPCFunctionArgs {
+        _dpi->setDPI(args[1], args[0]);
+        return {};
+    };
+
+    _functions.emplace("getDPI", get_function);
+    _functions.emplace("setDPI", set_function);
+
+    auto sensors = _dpi->getSensorCount();
+    ipc::IPCProperty sensors_property = {
+            ipc::IPCVariant(sensors),
+            ipc::IPCVariant::TypeInfo('y'),
+            true,
+            false
+    };
+
+    std::vector<ipc::IPCVariant> dpis_property_array;
+
+    for(int i = 0; i < sensors; i++) {
+        auto dpi_list = _dpi->getSupportedDPIs(i);
+        std::vector<ipc::IPCVariant> dpis_array;
+        for(std::size_t j = 0; j < dpi_list.dpis.size(); j++)
+            dpis_array.emplace_back(dpi_list.dpis[j]);
+        if(dpi_list.isRange)
+            dpis_array.emplace_back(dpi_list.dpiStep);
+
+        std::vector<ipc::IPCVariant> dpis_var_array;
+        dpis_var_array.emplace_back(dpis_array,
+                ipc::IPCVariant::TypeInfo("aq"));
+        dpis_var_array.emplace_back(dpi_list.isRange);
+
+        dpis_property_array.emplace_back(dpis_var_array,
+                ipc::IPCVariant::TypeInfo("(aqb)"));
+    }
+
+    ipc::IPCProperty dpis_property = {
+            ipc::IPCVariant(dpis_property_array,
+                    ipc::IPCVariant::TypeInfo("a(aqb)")),
+            ipc::IPCVariant::TypeInfo("a(aqb)"),
+            true,
+            false
+    };
+
+    _properties.emplace("sensorCount", sensors_property);
+    _properties.emplace("supportedDPIs", dpis_property);
 }

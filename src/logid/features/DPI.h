@@ -20,6 +20,7 @@
 
 #include "../backend/hidpp20/features/AdjustableDPI.h"
 #include "DeviceFeature.h"
+#include "../ipc/IPCInterface.h"
 
 namespace logid {
 namespace features
@@ -33,6 +34,9 @@ namespace features
 
         uint16_t getDPI(uint8_t sensor=0);
         void setDPI(uint16_t dpi, uint8_t sensor=0);
+        uint8_t getSensorCount();
+        backend::hidpp20::AdjustableDPI::SensorDPIList getSupportedDPIs(
+                uint8_t sensor=0);
 
         class Config : public DeviceFeature::Config
         {
@@ -43,10 +47,19 @@ namespace features
         protected:
             std::vector<uint16_t> _dpis;
         };
+
+        class IPC : public ipc::IPCInterface
+        {
+        public:
+            IPC(DPI* dpi);
+        private:
+            DPI* _dpi;
+        };
     private:
         Config _config;
         std::shared_ptr<backend::hidpp20::AdjustableDPI> _adjustable_dpi;
         std::vector<backend::hidpp20::AdjustableDPI::SensorDPIList> _dpi_lists;
+        std::shared_ptr<IPC> _ipc_interface;
     };
  }}
 
