@@ -20,6 +20,7 @@
 
 #include "../backend/hidpp20/features/SmartShift.h"
 #include "DeviceFeature.h"
+#include "../ipc/IPCInterface.h"
 
 namespace logid {
 namespace features
@@ -42,9 +43,18 @@ namespace features
         protected:
             backend::hidpp20::SmartShift::SmartshiftStatus _status;
         };
+
+        class IPC : public ipc::IPCInterface
+        {
+        public:
+            IPC(SmartShift* smart_shift);
+        private:
+            SmartShift* _smartshift;
+        };
     private:
         Config _config;
         std::shared_ptr<backend::hidpp20::SmartShift> _smartshift;
+        std::shared_ptr<IPC> _ipc_interface;
     };
 }}
 
