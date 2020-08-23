@@ -78,9 +78,25 @@ SmartShift::Config::Config(Device *dev) : DeviceFeature::Config(dev), _status()
     }
 }
 
-hidpp20::SmartShift::SmartshiftStatus SmartShift::Config::getSettings()
+hidpp20::SmartShift::SmartshiftStatus SmartShift::Config::getSettings() const
 {
     return _status;
+}
+
+void SmartShift::Config::mergeSettings(
+        const hidpp20::SmartShift::SmartshiftStatus& o)
+{
+    _status.setActive |= o.setActive;
+    if(o.setActive)
+        _status.active = o.active;
+
+    _status.setAutoDisengage |= o.setAutoDisengage;
+    if(o.setAutoDisengage)
+        _status.autoDisengage = o.autoDisengage;
+
+    _status.setDefaultAutoDisengage |= o.setDefaultAutoDisengage;
+    if(o.setDefaultAutoDisengage)
+        _status.defaultAutoDisengage = o.defaultAutoDisengage;
 }
 
 SmartShift::IPC::IPC(SmartShift *smart_shift) : ipc::IPCInterface(
@@ -118,6 +134,8 @@ SmartShift::IPC::IPC(SmartShift *smart_shift) : ipc::IPCInterface(
         status.autoDisengage = args[1][1];
         status.setDefaultAutoDisengage = args[2][0];
         status.defaultAutoDisengage = args[2][1];
+
+        _smartshift->_config.mergeSettings(status);
         _smartshift->setStatus(status);
 
         return {};

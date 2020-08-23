@@ -39,7 +39,9 @@ namespace features
         {
         public:
             explicit Config(Device* dev);
-            backend::hidpp20::SmartShift::SmartshiftStatus getSettings();
+            backend::hidpp20::SmartShift::SmartshiftStatus getSettings() const;
+            void mergeSettings(
+                    const backend::hidpp20::SmartShift::SmartshiftStatus& o);
         protected:
             backend::hidpp20::SmartShift::SmartshiftStatus _status;
         };
