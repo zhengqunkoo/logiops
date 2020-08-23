@@ -154,14 +154,22 @@ DPI::Config::Config(Device *dev) : DeviceFeature::Config(dev)
     }
 }
 
-uint8_t DPI::Config::getSensorCount()
+uint8_t DPI::Config::getSensorCount() const
 {
     return _dpis.size();
 }
 
-uint16_t DPI::Config::getDPI(uint8_t sensor)
+uint16_t DPI::Config::getDPI(uint8_t sensor) const
 {
     return _dpis[sensor];
+}
+
+void DPI::Config::setDPI(uint16_t dpi, uint8_t sensor)
+{
+    if(_dpis.size() >= sensor)
+        _dpis.resize(sensor+1);
+
+    _dpis[sensor] = dpi;
 }
 
 DPI::IPC::IPC(DPI *dpi) : ipc::IPCInterface(dpi->device()->ipc().node() +
@@ -183,6 +191,8 @@ DPI::IPC::IPC(DPI *dpi) : ipc::IPCInterface(dpi->device()->ipc().node() +
     set_function->function = [this](const ipc::IPCFunctionArgs& args)->
             ipc::IPCFunctionArgs {
         _dpi->setDPI(args[1], args[0]);
+        // If setting the dpi hasn't failed, store in config
+        _dpi->_config.setDPI(args[1], args[0]);
         return {};
     };
 

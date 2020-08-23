@@ -42,8 +42,10 @@ namespace features
         {
         public:
             explicit Config(Device* dev);
-            uint16_t getDPI(uint8_t sensor);
-            uint8_t getSensorCount();
+            uint16_t getDPI(uint8_t sensor) const;
+            uint8_t getSensorCount() const;
+
+            void setDPI(uint16_t dpi, uint8_t sensor);
         protected:
             std::vector<uint16_t> _dpis;
         };
