@@ -67,7 +67,7 @@ IPCVariant logid::ipc::translateGVariant(GVariant* variant)
         return IPCVariant(std::string(g_variant_get_string(variant, &length),
                 length), type.primaryType());
     case IPCVariant::TypeInfo::Boolean:
-        return IPCVariant(g_variant_get_boolean(variant));
+        return IPCVariant((bool)g_variant_get_boolean(variant));
     case IPCVariant::TypeInfo::Array:
     case IPCVariant::TypeInfo::Struct:
         length = g_variant_n_children(variant);
