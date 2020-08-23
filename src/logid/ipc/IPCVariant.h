@@ -290,6 +290,12 @@ namespace ipc
             return !(*this == other);
         }
         IPCVariant& operator=(const IPCVariant& other);
+
+        const IPCVariant& operator[](const ipc::IPCVariant& key) const;
+        const IPCVariant& operator[](std::size_t index) const;
+
+        IPCVariant& operator[](ipc::IPCVariant& key);
+        IPCVariant& operator[](std::size_t index);
     };
 }}
 

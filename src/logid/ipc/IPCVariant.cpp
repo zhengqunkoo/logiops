@@ -421,3 +421,39 @@ std::pair<const IPCVariant::TypeInfo&, const IPCVariant::TypeInfo&>
         throw InvalidType();
     return {*_dict_key, *_dict_value};
 }
+
+const IPCVariant& IPCVariant::operator[](const ipc::IPCVariant& key) const
+{
+    if(_type.primaryType() != TypeInfo::Dict)
+        throw InvalidType();
+
+    return _dict.find(key)->second;
+}
+
+const IPCVariant& IPCVariant::operator[](std::size_t index) const
+{
+    if(_type.primaryType() != TypeInfo::Array &&
+       _type.primaryType() != TypeInfo::Struct)
+        throw InvalidType();
+
+    assert(index >= 0 && index < _array.size());
+    return _array[index];
+}
+
+IPCVariant& IPCVariant::operator[](ipc::IPCVariant& key)
+{
+    if(_type.primaryType() != TypeInfo::Dict)
+        throw InvalidType();
+
+    return _dict[key];
+}
+
+IPCVariant& IPCVariant::operator[](std::size_t index)
+{
+    if(_type.primaryType() != TypeInfo::Array &&
+        _type.primaryType() != TypeInfo::Struct)
+        throw InvalidType();
+
+    assert(index < _array.size());
+    return _array[index];
+}
