@@ -95,11 +95,16 @@ namespace logid
         public:
             friend IPC;
             Config(const std::shared_ptr<Configuration>& config, Device*
-            device);
+                device);
             libconfig::Setting& getSetting(const std::string& path);
+            const std::map<std::string, std::string>& getProfiles() const;
+            void setProfile(const std::string& name);
         private:
             Device* _device;
             std::string _root_setting;
+            std::string _profile_root;
+            std::string _profile_name;
+            std::map<std::string, std::string> _profiles;
             std::shared_ptr<Configuration> _config;
         };
 
