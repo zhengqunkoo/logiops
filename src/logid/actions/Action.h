@@ -21,6 +21,7 @@
 #include <atomic>
 #include <libconfig.h++>
 #include <memory>
+#include "../ipc/IPCInterface.h"
 
 namespace logid {
     class Device;
@@ -70,6 +71,13 @@ namespace actions {
             {
             }
             Device* _device;
+        };
+
+        class IPC : public ipc::IPCInterface
+        {
+        protected:
+            explicit IPC(const ipc::IPCInterface& root,
+                         const std::string& action);
         };
     protected:
         explicit Action(Device* device) : _device (device), _pressed (false)

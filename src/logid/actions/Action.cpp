@@ -77,3 +77,8 @@ std::shared_ptr<Action> Action::makeAction(Device *device, libconfig::Setting
         throw InvalidAction();
     }
 }
+
+Action::IPC::IPC(const ipc::IPCInterface& root, const std::string& action) :
+    ipc::IPCInterface(root.node() + "/action", action)
+{
+}
