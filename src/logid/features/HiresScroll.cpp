@@ -55,6 +55,8 @@ void HiresScroll::setMode(uint8_t mode)
 
 HiresScroll::Config::Config(Device *dev) : DeviceFeature::Config(dev)
 {
+    _mode = 0;
+    _mask = 0;
     try {
         auto& config_root = dev->config().getSetting("hiresscroll");
         if(!config_root.isGroup()) {
@@ -62,8 +64,6 @@ HiresScroll::Config::Config(Device *dev) : DeviceFeature::Config(dev)
                       config_root.getSourceLine());
             return;
         }
-        _mode = 0;
-        _mask = 0;
         try {
             auto& hires = config_root.lookup("hires");
             if(hires.getType() == libconfig::Setting::TypeBoolean) {
