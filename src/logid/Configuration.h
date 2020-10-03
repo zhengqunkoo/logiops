@@ -38,9 +38,11 @@ namespace logid
         Configuration();
         libconfig::Setting& getSetting(const std::string& path);
         std::string getDevice(const std::string& name);
+        std::string addDevice(const std::string& name);
         bool isIgnored(uint16_t pid) const;
 
         void reload();
+        void save();
 
         class DeviceNotFound : public std::exception
         {
@@ -61,7 +63,6 @@ namespace logid
         public:
             IPC(Configuration* config);
         private:
-            void reload();
             Configuration* _config;
         };
 

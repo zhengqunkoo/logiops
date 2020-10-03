@@ -97,13 +97,18 @@ namespace logid
             Config(const std::shared_ptr<Configuration>& config, Device*
                 device);
             libconfig::Setting& getSetting(const std::string& path);
+            void setSetting(const std::string& path, libconfig::Setting&
+                setting);
             const std::map<std::string, std::string>& getProfiles() const;
             void setProfile(const std::string& name);
+
+            void saveProfile();
         private:
             Device* _device;
             std::string _root_setting;
             std::string _profile_root;
             std::string _profile_name;
+            std::string _default_profile;
             std::map<std::string, std::string> _profiles;
             std::shared_ptr<Configuration> _config;
         };
@@ -126,6 +131,7 @@ namespace logid
             void sleep();
             void wakeup();
             void initFeatures();
+            void updateProfiles();
         private:
             Device* _device;
         };

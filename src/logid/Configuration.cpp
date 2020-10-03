@@ -86,8 +86,15 @@ void Configuration::_readConfig()
 
     try {
         auto& devices = root["devices"];
+        int length = 0;
 
-        for(int i = 0; i < devices.getLength(); i++) {
+        if(devices.isList())
+            length = devices.getLength();
+        else
+            logPrintf(WARN, "Line %d: devices must be a list",
+                      devices.getSourceLine());
+
+        for(int i = 0; i < length; i++) {
             const Setting& device = devices[i];
             std::string name;
             try {
@@ -110,12 +117,12 @@ void Configuration::_readConfig()
 
     try {
         auto& ignore = root.lookup("ignore");
-        if(ignore.getType() == libconfig::Setting::TypeInt) {
+        if(ignore.getType() == Setting::TypeInt) {
             _ignore_list.insert((int)ignore);
         } else if(ignore.isList() || ignore.isArray()) {
             int ignore_count = ignore.getLength();
             for(int i = 0; i < ignore_count; i++) {
-                if(ignore[i].getType() != libconfig::Setting::TypeInt) {
+                if(ignore[i].getType() != Setting::TypeInt) {
                     logPrintf(WARN, "Line %d: ignore must refer to device PIDs",
                               ignore[i].getSourceLine());
                     if(ignore.isArray())
@@ -128,12 +135,12 @@ void Configuration::_readConfig()
         // May be called blacklist
         try {
             auto& ignore = root.lookup("blacklist");
-            if(ignore.getType() == libconfig::Setting::TypeInt) {
+            if(ignore.getType() == Setting::TypeInt) {
                 _ignore_list.insert((int)ignore);
             } else if(ignore.isList() || ignore.isArray()) {
                 int ignore_count = ignore.getLength();
                 for(int i = 0; i < ignore_count; i++) {
-                    if(ignore[i].getType() != libconfig::Setting::TypeInt) {
+                    if(ignore[i].getType() != Setting::TypeInt) {
                         logPrintf(WARN, "Line %d: blacklist must refer to "
                                         "device PIDs",
                                   ignore[i].getSourceLine());
@@ -172,7 +179,7 @@ void Configuration::reload()
     logPrintf(INFO, "Reloaded configuration successfully.");
 }
 
-libconfig::Setting& Configuration::getSetting(const std::string& path)
+Setting& Configuration::getSetting(const std::string& path)
 {
     return _config.lookup(path);
 }
@@ -184,6 +191,42 @@ std::string Configuration::getDevice(const std::string& name)
         throw DeviceNotFound(name);
     else
         return it->second;
+}
+
+std::string Configuration::addDevice(const std::string &name)
+{
+    auto dev_path = _device_paths.find(name);
+    if(dev_path != _device_paths.end())
+        return dev_path->second;
+
+    try {
+        auto& devices = _config.lookup("devices");
+        if(!devices.isList())
+            _config.getRoot().remove("devices");
+        _config.getRoot().add("devices",Setting::TypeList);
+    } catch(libconfig::SettingNotFoundException& e) {
+    }
+
+    auto& devices = _config.exists("devices") ? _config.lookup("devices") :
+            _config.getRoot().add("devices", Setting::TypeList);
+    auto& device = devices.add(Setting::TypeGroup);
+    auto& dev_name = device.add(name, Setting::TypeString);
+    dev_name = name;
+    devices.add("profiles", Setting::TypeList);
+
+    _device_paths[name] = device.getPath();
+
+    return device.getPath();
+}
+
+void Configuration::save()
+{
+    try {
+        _config.writeFile(_config_file.c_str());
+    } catch (libconfig::FileIOException& e) {
+        logPrintf(ERROR, "I/O Error while writing to %s: %s. Config file will"
+                         " not be saved.", _config_file.c_str(), e.what());
+    }
 }
 
 bool Configuration::isIgnored(uint16_t pid) const
@@ -214,12 +257,20 @@ std::chrono::milliseconds Configuration::ioTimeout() const
 Configuration::IPC::IPC(Configuration* config) : ipc::IPCInterface("",
         "Configuration"), _config (config)
 {
-    auto function = std::make_shared<ipc::IPCFunction>();
-    function->function = [c=this->_config](const ipc::IPCFunctionArgs&)
+    auto reload = std::make_shared<ipc::IPCFunction>();
+    reload->function = [c=this->_config](const ipc::IPCFunctionArgs&)
             ->ipc::IPCFunctionArgs {
-                c->reload();
-                return {};
-            };
+        c->reload();
+        return {};
+    };
 
-    _functions.emplace("reload", function);
+    auto save = std::make_shared<ipc::IPCFunction>();
+    save->function = [c=this->_config](const ipc::IPCFunctionArgs&)
+            ->ipc::IPCFunctionArgs {
+        c->save();
+        return {};
+    };
+
+    _functions.emplace("reload", reload);
+    _functions.emplace("save", save);
 }

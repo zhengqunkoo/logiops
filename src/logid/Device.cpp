@@ -167,6 +167,7 @@ Device::Config::Config(const std::shared_ptr<Configuration>& config, Device*
     } catch(Configuration::DeviceNotFound& e) {
         logPrintf(INFO, "Device %s not configured, using default config.",
                 device->name().c_str());
+
         return;
     }
 
@@ -244,16 +245,17 @@ Device::Config::Config(const std::shared_ptr<Configuration>& config, Device*
             _profiles[name] = profile.getPath();
         }
 
-        if(_profiles.empty()) {
-            _profile_name = "0";
-        }
+        if(_profiles.empty())
+            _profile_name = "default";
 
         if(_profile_root.empty())
             _profile_root = _profiles[_profile_name];
     } catch(libconfig::SettingNotFoundException& e) {
         // No profiles, default to root
         _profile_root = _root_setting;
+        _profile_name = "default";
     }
+    _default_profile = _profile_name;
 }
 
 libconfig::Setting& Device::Config::getSetting(const std::string& path)
@@ -273,6 +275,59 @@ void Device::Config::setProfile(const std::string &name)
 {
     _profile_name = name;
     _profile_root = _profiles[name];
+}
+
+void Device::Config::saveProfile()
+{
+    if(_root_setting.empty()) {
+        _root_setting = _config->addDevice(_device->name());
+    }
+
+    auto& root = _config->getSetting(_root_setting);
+
+    if(root.exists("profiles")) {
+        auto& profiles = root.lookup("profiles");
+        if(!profiles.isList()) {
+            logPrintf(WARN, "Line %d: profiles is not a list, replacing with"
+                            "list.", profiles.getSourceLine());
+            root.remove("profiles");
+            root.add("profiles", libconfig::Setting::TypeList);
+        }
+    } else {
+        root.add("profiles", libconfig::Setting::TypeList);
+    }
+
+    auto& profiles = root.lookup("profiles");
+    int profile_index = -1;
+    for(int i = 0; i < profiles.getLength(); i++) {
+        auto& profile = profiles[i];
+        std::string profile_name = std::to_string(i);
+        if(profile.exists("name")) {
+            auto& profile_name_setting = profile.lookup("name");
+            if(profile_name_setting.getType() == libconfig::Setting::TypeString)
+                profile_name = (const char*)profile_name_setting;
+        }
+
+        if(_profile_name == profile_name) {
+            profile_index = i;
+            break;
+        }
+    }
+
+    auto& profile = profile_index == -1 ?
+            profiles.add(libconfig::Setting::TypeGroup) :
+            profiles[profile_index];
+
+    if(profile_index == -1) {
+        auto& profile_name = profile.add("name",
+                                         libconfig::Setting::TypeString);
+        profile_name = _profile_name;
+    }
+
+    _profile_root = profile.getPath();
+
+    for(auto& feature : _device->_features)
+        feature.second->saveConfig(profile);
 }
 
 Device::IPC::IPC(Device *device) : ipc::IPCInterface("device/" +
@@ -336,6 +391,20 @@ std::to_string(device->_device_id), "Device"), _device (device)
             false
     };
 
+    std::vector<ipc::IPCVariant> profile_struct;
+    profile_struct.emplace_back(_device->config()._profile_name);
+    std::vector<ipc::IPCVariant> profiles;
+    for(auto& profile : _device->config().getProfiles())
+        profiles.emplace_back(profile.first);
+    profile_struct.emplace_back(profiles, ipc::IPCVariant::TypeInfo("as"));
+    profile_struct.emplace_back(_device->config()._default_profile);
+    ipc::IPCProperty profile_property = {
+            ipc::IPCVariant(profile_struct,ipc::IPCVariant::TypeInfo("(sass)")),
+            ipc::IPCVariant::TypeInfo("(sass)"),
+            true,
+            false
+    };
+
     _properties.emplace("name", name_property);
     _properties.emplace("pid", pid_property);
     _properties.emplace("supportedFeatures", features_property);
@@ -343,11 +412,11 @@ std::to_string(device->_device_id), "Device"), _device (device)
     _properties.emplace("receiver", recv_property);
     _properties.emplace("rawPath", rawpath_property);
     _properties.emplace("deviceIndex", devindex_property);
+    _properties.emplace("profiles", profile_property);
 
     auto reconf_function = std::make_shared<ipc::IPCFunction>();
-    reconf_function->function = [dev=this->_device](const ipc::IPCFunctionArgs&
-            args)->ipc::IPCFunctionArgs {
-        (void)args;
+    reconf_function->function = [dev=this->_device](const ipc::IPCFunctionArgs&)
+            ->ipc::IPCFunctionArgs {
         task::spawn([dev]{
             dev->reset();
             for (auto &feature: dev->_features)
@@ -355,7 +424,16 @@ std::to_string(device->_device_id), "Device"), _device (device)
         });
         return {};
     };
+
+    auto saveprofile_func = std::make_shared<ipc::IPCFunction>();
+    saveprofile_func->function = [dev=this->_device](const ipc::IPCFunctionArgs&)
+            ->ipc::IPCFunctionArgs {
+        dev->config().saveProfile();
+        return {};
+    };
+
     _functions.emplace("reconfigure", reconf_function);
+    _functions.emplace("saveProfile", saveprofile_func);
 }
 
 void Device::IPC::sleep()

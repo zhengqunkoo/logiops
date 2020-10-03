@@ -20,6 +20,7 @@
 #define LOGID_FEATURES_DEVICEFEATURE_H
 
 #include <string>
+#include <libconfig.h++>
 
 namespace logid {
     class Device;
@@ -53,9 +54,19 @@ namespace features
             explicit Config(Device* dev) : _device (dev)
             {
             }
+
+            virtual void save(libconfig::Setting& root)
+            {
+                (void)root;
+            }
         protected:
             Device* _device;
         };
+
+        virtual void saveConfig(libconfig::Setting& root)
+        {
+            (void)root;
+        }
 
     protected:
         Device* _device;

@@ -96,6 +96,11 @@ void DPI::listen()
 {
 }
 
+void DPI::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 uint16_t DPI::getDPI(uint8_t sensor)
 {
     return _adjustable_dpi->getSensorDPI(sensor);
@@ -170,6 +175,18 @@ void DPI::Config::setDPI(uint16_t dpi, uint8_t sensor)
         _dpis.resize(sensor+1);
 
     _dpis[sensor] = dpi;
+}
+
+void DPI::Config::save(libconfig::Setting& root)
+{
+    if(root.exists("dpi"))
+        root.remove("dpi");
+
+    auto& dpi_setting = root.add("dpi", libconfig::Setting::TypeArray);
+    for(std::size_t i = 0; i < _dpis.size(); i++) {
+        auto& dpi = dpi_setting.add(libconfig::Setting::TypeInt);
+        dpi = _dpis[i];
+    }
 }
 
 DPI::IPC::IPC(DPI *dpi) : ipc::IPCInterface(dpi->device()->ipc().node() +

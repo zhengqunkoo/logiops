@@ -18,6 +18,7 @@
 #ifndef LOGID_FEATURE_DPI_H
 #define LOGID_FEATURE_DPI_H
 
+#include <libconfig.h++>
 #include "../backend/hidpp20/features/AdjustableDPI.h"
 #include "DeviceFeature.h"
 #include "../ipc/IPCInterface.h"
@@ -46,9 +47,13 @@ namespace features
             uint8_t getSensorCount() const;
 
             void setDPI(uint16_t dpi, uint8_t sensor);
+
+            void save(libconfig::Setting& root) override;
         protected:
             std::vector<uint16_t> _dpis;
         };
+
+        void saveConfig(libconfig::Setting& root) override;
 
         class IPC : public ipc::IPCInterface
         {
