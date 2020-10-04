@@ -55,10 +55,7 @@ namespace features
             {
             }
 
-            virtual void save(libconfig::Setting& root)
-            {
-                (void)root;
-            }
+            virtual void save(libconfig::Setting& root) = 0;
         protected:
             Device* _device;
         };

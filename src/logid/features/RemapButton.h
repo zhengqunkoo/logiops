@@ -33,12 +33,15 @@ namespace features
         virtual void configure();
         virtual void listen();
 
+        void saveConfig(libconfig::Setting& root);
+
         class Config : public DeviceFeature::Config
         {
         public:
             explicit Config(Device* dev);
             const std::map<uint8_t, std::shared_ptr<actions::Action>>&
                 buttons();
+            void save(libconfig::Setting& root);
         protected:
             void _parseButton(libconfig::Setting& setting);
             std::map<uint8_t, std::shared_ptr<actions::Action>> _buttons;

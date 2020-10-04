@@ -40,10 +40,14 @@ namespace features
             explicit Config(Device* dev);
             uint8_t getMode() const;
             uint8_t getMask() const;
+
+            void save(libconfig::Setting& root) override;
         protected:
             uint8_t _mode;
             uint8_t _mask;
         };
+
+        void saveConfig(libconfig::Setting& root);
     private:
         std::shared_ptr<backend::hidpp20::HiresScroll> _hires_scroll;
         Config _config;

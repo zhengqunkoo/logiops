@@ -53,6 +53,11 @@ void HiresScroll::setMode(uint8_t mode)
     _hires_scroll->setMode(mode);
 }
 
+void HiresScroll::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 HiresScroll::Config::Config(Device *dev) : DeviceFeature::Config(dev)
 {
     _mode = 0;
@@ -112,4 +117,27 @@ uint8_t HiresScroll::Config::getMode() const
 uint8_t HiresScroll::Config::getMask() const
 {
     return _mask;
+}
+
+void HiresScroll::Config::save(libconfig::Setting &root)
+{
+    if(root.exists("hiresscroll"))
+        root.remove("hiresscroll");
+
+    auto& setting = root.add("hiresscroll", libconfig::Setting::TypeGroup);
+
+    if(_mask & hidpp20::HiresScroll::Mode::HiRes) {
+        auto& hires = setting.add("hires", libconfig::Setting::TypeBoolean);
+        hires = (bool)(_mode & hidpp20::HiresScroll::Mode::HiRes);
+    }
+
+    if(_mask & hidpp20::HiresScroll::Mode::Inverted) {
+        auto& invert = setting.add("invert", libconfig::Setting::TypeBoolean);
+        invert = (bool)(_mode & hidpp20::HiresScroll::Mode::Inverted);
+    }
+
+    if(_mask & hidpp20::HiresScroll::Mode::Target) {
+        auto& target = setting.add("target", libconfig::Setting::TypeBoolean);
+        target = (bool)(_mode & hidpp20::HiresScroll::Mode::Target);
+    }
 }

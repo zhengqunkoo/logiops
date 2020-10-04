@@ -34,6 +34,7 @@ namespace features
 
         backend::hidpp20::SmartShift::SmartshiftStatus getStatus();
         void setStatus(backend::hidpp20::SmartShift::SmartshiftStatus status);
+        void saveConfig(libconfig::Setting& root);
 
         class Config : public DeviceFeature::Config
         {
@@ -42,6 +43,8 @@ namespace features
             backend::hidpp20::SmartShift::SmartshiftStatus getSettings() const;
             void mergeSettings(
                     const backend::hidpp20::SmartShift::SmartshiftStatus& o);
+
+            void save(libconfig::Setting& root);
         protected:
             backend::hidpp20::SmartShift::SmartshiftStatus _status;
         };

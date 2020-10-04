@@ -124,6 +124,11 @@ void RemapButton::listen()
     }
 }
 
+void RemapButton::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 void RemapButton::_buttonEvent(const std::set<uint16_t>& new_state)
 {
     // Ensure I/O doesn't occur while updating button state
@@ -206,4 +211,18 @@ void RemapButton::Config::_parseButton(libconfig::Setting &setting)
 const std::map<uint8_t, std::shared_ptr<Action>>& RemapButton::Config::buttons()
 {
     return _buttons;
+}
+
+void RemapButton::Config::save(libconfig::Setting& root)
+{
+    if(root.exists("buttons"))
+        root.remove("buttons");
+
+    auto& config_root = root.add("buttons", libconfig::Setting::TypeList);
+
+    for(const auto& b : _buttons) {
+        auto& button_conf = config_root.add(libconfig::Setting::TypeGroup);
+        button_conf.add("cid", libconfig::Setting::TypeInt) = b.first;
+        ///TODO: Action config
+    }
 }

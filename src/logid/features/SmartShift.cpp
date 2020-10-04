@@ -55,6 +55,11 @@ void SmartShift::setStatus(backend::hidpp20::SmartShift::SmartshiftStatus
     _smartshift->setStatus(status);
 }
 
+void SmartShift::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 SmartShift::Config::Config(Device *dev) : DeviceFeature::Config(dev), _status()
 {
     try {
@@ -97,6 +102,23 @@ void SmartShift::Config::mergeSettings(
     _status.setDefaultAutoDisengage |= o.setDefaultAutoDisengage;
     if(o.setDefaultAutoDisengage)
         _status.defaultAutoDisengage = o.defaultAutoDisengage;
+}
+
+void SmartShift::Config::save(libconfig::Setting& root)
+{
+    if(root.exists("smartshift"))
+        root.remove("smartshift");
+
+    auto& ss_setting = root.add("smartshift", libconfig::Setting::TypeGroup);
+
+    if(_status.setActive)
+        ss_setting.add("on", libconfig::Setting::TypeBoolean) = _status.active;
+    if(_status.setAutoDisengage)
+        ss_setting.add("threshold", libconfig::Setting::TypeInt) =
+                _status.autoDisengage;
+    if(_status.setDefaultAutoDisengage)
+        ss_setting.add("default_threshold", libconfig::Setting::TypeInt) =
+                _status.defaultAutoDisengage;
 }
 
 SmartShift::IPC::IPC(SmartShift *smart_shift) : ipc::IPCInterface(
