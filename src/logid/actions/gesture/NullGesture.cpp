@@ -40,6 +40,11 @@ void NullGesture::move(int16_t axis)
     _axis += axis;
 }
 
+void NullGesture::saveConfig(libconfig::Setting& root)
+{
+    root.add("mode", libconfig::Setting::TypeString) = "NoPress";
+}
+
 bool NullGesture::metThreshold() const
 {
     return _axis > _config.threshold();

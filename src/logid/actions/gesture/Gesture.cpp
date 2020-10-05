@@ -65,6 +65,16 @@ Gesture::Config::Config(Device* device, libconfig::Setting& root,
     }
 }
 
+void Gesture::Config::save(libconfig::Setting &root)
+{
+    root.add("threshold", libconfig::Setting::TypeInt) = _threshold;
+
+    if(_action) {
+        auto& action_root = root.add("action", libconfig::Setting::TypeGroup);
+        _action->saveConfig(action_root);
+    }
+}
+
 std::shared_ptr<Gesture> Gesture::makeGesture(Device *device,
         libconfig::Setting &setting)
 {

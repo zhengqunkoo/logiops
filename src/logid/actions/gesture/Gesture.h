@@ -45,9 +45,7 @@ namespace actions
         virtual void press() = 0;
         virtual void release(bool primary=false) = 0;
         virtual void move(int16_t axis) = 0;
-        virtual void saveConfig(libconfig::Setting&)
-        {
-        }
+        virtual void saveConfig(libconfig::Setting& root) = 0;
 
         virtual bool metThreshold() const = 0;
 
@@ -58,6 +56,7 @@ namespace actions
                     bool action_required=true);
             virtual int16_t threshold() const;
             virtual std::shared_ptr<Action> action();
+            virtual void save(libconfig::Setting& root);
         protected:
             Device* _device;
             std::shared_ptr<Action> _action;

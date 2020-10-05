@@ -270,7 +270,7 @@ void GestureAction::Config::save(libconfig::Setting &root)
 
     if(_none_action) {
         auto& g_conf = gestures.add(libconfig::Setting::TypeGroup);
-        g_conf.add("direction", libconfig::Setting::TypeGroup) = "None";
+        g_conf.add("direction", libconfig::Setting::TypeString) = "None";
         auto& action_root = g_conf.add("action", libconfig::Setting::TypeGroup);
         _none_action->saveConfig(action_root);
     }

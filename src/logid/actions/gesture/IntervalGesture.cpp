@@ -52,6 +52,11 @@ void IntervalGesture::move(int16_t axis)
     _interval_pass_count = new_interval_count;
 }
 
+void IntervalGesture::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 bool IntervalGesture::metThreshold() const
 {
     return _axis >= _config.threshold();
@@ -81,8 +86,23 @@ IntervalGesture::Config::Config(Device *device, libconfig::Setting &setting) :
         } catch(libconfig::SettingNotFoundException& e) {
             logPrintf(WARN, "Line %d: interval is a required field, skipping.",
                       setting.getSourceLine());
+            throw InvalidGesture();
         }
     }
+}
+
+void IntervalGesture::Config::save(libconfig::Setting &root)
+{
+    root.add("mode", libconfig::Setting::TypeString) = "OnInterval";
+
+    root.add("interval", libconfig::Setting::TypeInt) = _interval;
+
+    if(_action) {
+        auto& action_root = root.add("action", libconfig::Setting::TypeGroup);
+        _action->saveConfig(action_root);
+    }
+
+    root.add("threshold", libconfig::Setting::TypeInt) = _threshold;
 }
 
 int16_t IntervalGesture::Config::interval() const

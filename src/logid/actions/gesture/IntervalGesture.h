@@ -32,6 +32,8 @@ namespace actions
         virtual void release(bool primary=false);
         virtual void move(int16_t axis);
 
+        void saveConfig(libconfig::Setting& root) override;
+
         virtual bool metThreshold() const;
 
         class Config : public Gesture::Config
@@ -39,6 +41,7 @@ namespace actions
         public:
             Config(Device* device, libconfig::Setting& setting);
             int16_t interval() const;
+            void save(libconfig::Setting& root) override;
         private:
             int16_t _interval;
         };

@@ -32,6 +32,8 @@ namespace actions
         virtual void release(bool primary=false);
         virtual void move(int16_t axis);
 
+        void saveConfig(libconfig::Setting& root) override;
+
         virtual bool metThreshold() const;
     protected:
         int16_t _axis;

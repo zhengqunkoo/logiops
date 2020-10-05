@@ -68,6 +68,11 @@ void AxisGesture::move(int16_t axis)
     _axis = new_axis;
 }
 
+void AxisGesture::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 bool AxisGesture::metThreshold() const
 {
     return _axis >= _config.threshold();
@@ -113,6 +118,18 @@ AxisGesture::Config::Config(Device *device, libconfig::Setting &setting) :
     } catch(libconfig::SettingNotFoundException& e) {
         // Ignore
     }
+}
+
+void AxisGesture::Config::save(libconfig::Setting& root)
+{
+    root.add("mode", libconfig::Setting::TypeString) = "Axis";
+
+    root.add("axis", libconfig::Setting::TypeString) =
+            InputDevice::toAxisName(_axis);
+
+    root.add("axis_multiplier", libconfig::Setting::TypeFloat) = _multiplier;
+
+    root.add("threshold", libconfig::Setting::TypeInt) = _threshold;
 }
 
 unsigned int AxisGesture::Config::axis() const

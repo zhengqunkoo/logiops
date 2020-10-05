@@ -42,6 +42,12 @@ void ReleaseGesture::move(int16_t axis)
     _axis += axis;
 }
 
+void ReleaseGesture::saveConfig(libconfig::Setting& root)
+{
+    root.add("mode", libconfig::Setting::TypeString) = "OnRelease";
+    _config.save(root);
+}
+
 bool ReleaseGesture::metThreshold() const
 {
     return _axis >= _config.threshold();

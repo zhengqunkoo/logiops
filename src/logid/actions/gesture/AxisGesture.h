@@ -32,12 +32,15 @@ namespace logid {
             virtual void release(bool primary=false);
             virtual void move(int16_t axis);
 
+            void saveConfig(libconfig::Setting& root) override;
+
             virtual bool metThreshold() const;
 
             class Config : public Gesture::Config
             {
             public:
                 Config(Device* device, libconfig::Setting& setting);
+                void save(libconfig::Setting& root) override;
                 unsigned int axis() const;
                 double multiplier() const;
             private:
