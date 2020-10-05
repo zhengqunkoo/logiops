@@ -223,6 +223,6 @@ void RemapButton::Config::save(libconfig::Setting& root)
     for(const auto& b : _buttons) {
         auto& button_conf = config_root.add(libconfig::Setting::TypeGroup);
         button_conf.add("cid", libconfig::Setting::TypeInt) = b.first;
-        b.second->saveConfig(button_conf);
+        b.second->saveConfig(button_conf.add("action", libconfig::Setting::TypeGroup));
     }
 }
