@@ -51,6 +51,11 @@ void ToggleSmartShift::release()
     _pressed = false;
 }
 
+void ToggleSmartShift::saveConfig(libconfig::Setting& root)
+{
+    root.add("type", libconfig::Setting::TypeString) = "ToggleSmartShift";
+}
+
 uint8_t ToggleSmartShift::reprogFlags() const
 {
     return hidpp20::ReprogControls::TemporaryDiverted;

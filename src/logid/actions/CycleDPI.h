@@ -32,12 +32,15 @@ namespace actions {
         virtual void press();
         virtual void release();
 
+        void saveConfig(libconfig::Setting& root) override;
+
         virtual uint8_t reprogFlags() const;
 
     class Config : public Action::Config
     {
     public:
         Config(Device* device, libconfig::Setting& setting);
+        void save(libconfig::Setting& root) override;
         uint16_t nextDPI();
         bool empty() const;
         uint8_t sensor() const;

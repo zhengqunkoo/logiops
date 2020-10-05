@@ -48,11 +48,14 @@ namespace logid
         void releaseKey(uint code);
 
         static uint toKeyCode(const std::string& name);
+        static std::string toKeyName(uint code);
         static uint toAxisCode(const std::string& name);
+        static std::string toAxisName(uint code);
     private:
         void _sendEvent(uint type, uint code, int value);
 
         static uint _toEventCode(uint type, const std::string& name);
+        static std::string _toEventName(uint type, uint code);
 
         libevdev* device;
         libevdev_uinput* ui_device{};

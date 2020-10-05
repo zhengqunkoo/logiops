@@ -31,6 +31,7 @@ namespace actions {
 
         virtual void press();
         virtual void release();
+        void saveConfig(libconfig::Setting& root) override;
 
         virtual uint8_t reprogFlags() const;
     protected:

@@ -33,6 +33,8 @@ namespace actions
         virtual void press();
         virtual void release();
 
+        void saveConfig(libconfig::Setting& root) override;
+
         virtual uint8_t reprogFlags() const;
 
         class Config : public Action::Config
@@ -40,6 +42,8 @@ namespace actions
         public:
             Config(Device* device, libconfig::Setting& setting);
             uint8_t nextHost(backend::hidpp20::ChangeHost::HostInfo info);
+
+            void save(libconfig::Setting& root) override;
         private:
             bool _offset;
             int _host;

@@ -45,6 +45,8 @@ namespace actions {
         virtual void release();
         virtual void move(int16_t x, int16_t y);
 
+        void saveConfig(libconfig::Setting& root) override;
+
         virtual uint8_t reprogFlags() const;
 
         class Config : public Action::Config
@@ -52,6 +54,7 @@ namespace actions {
         public:
             Config(Device* device, libconfig::Setting& root);
             std::map<Direction, std::shared_ptr<Gesture>>& gestures();
+            void save(libconfig::Setting& root) override;
             std::shared_ptr<Action> noneAction();
         protected:
             std::map<Direction, std::shared_ptr<Gesture>> _gestures;

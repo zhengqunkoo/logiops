@@ -42,6 +42,11 @@ void KeypressAction::release()
         virtual_input->releaseKey(key);
 }
 
+void KeypressAction::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 uint8_t KeypressAction::reprogFlags() const
 {
     return hidpp20::ReprogControls::TemporaryDiverted;
@@ -81,6 +86,15 @@ KeypressAction::Config::Config(Device* device, libconfig::Setting& config) :
         logPrintf(WARN, "Line %d: keys is a required field, skipping.",
                 config.getSourceLine());
     }
+}
+
+void KeypressAction::Config::save(libconfig::Setting& root)
+{
+    root.add("type", libconfig::Setting::TypeString) = "Keypress";
+
+    auto& keys = root.add("keys", libconfig::Setting::TypeArray);
+    for(auto& k : _keys)
+        keys.add(libconfig::Setting::TypeString) = InputDevice::toKeyName(k);
 }
 
 std::vector<uint>& KeypressAction::Config::keys()

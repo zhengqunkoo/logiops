@@ -49,6 +49,8 @@ namespace actions {
         static std::shared_ptr<Action> makeAction(Device* device,
                 libconfig::Setting& setting);
 
+        virtual void saveConfig(libconfig::Setting& root) = 0;
+
         virtual void press() = 0;
         virtual void release() = 0;
         virtual void move(int16_t x, int16_t y)
@@ -70,6 +72,8 @@ namespace actions {
             explicit Config(Device* device) : _device (device)
             {
             }
+
+            virtual void save(libconfig::Setting& root) = 0;
             Device* _device;
         };
 

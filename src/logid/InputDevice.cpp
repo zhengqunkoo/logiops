@@ -84,10 +84,21 @@ uint InputDevice::toKeyCode(const std::string& name)
     return _toEventCode(EV_KEY, name);
 }
 
+std::string InputDevice::toKeyName(uint code)
+{
+    return _toEventName(EV_KEY, code);
+}
+
 uint InputDevice::toAxisCode(const std::string& name)
 {
     return _toEventCode(EV_REL, name);
 }
+
+std::string InputDevice::toAxisName(uint code)
+{
+    return _toEventName(EV_REL, code);
+}
+
 
 uint InputDevice::_toEventCode(uint type, const std::string& name)
 {
@@ -97,6 +108,16 @@ uint InputDevice::_toEventCode(uint type, const std::string& name)
         throw InvalidEventCode(name);
 
     return code;
+}
+
+std::string InputDevice::_toEventName(uint type, uint code)
+{
+    const char* name = libevdev_event_code_get_name(type, code);
+
+    if(name == nullptr)
+        throw InvalidEventCode(std::to_string(code));
+
+    return name;
 }
 
 void InputDevice::_sendEvent(uint type, uint code, int value)

@@ -35,6 +35,11 @@ void NullAction::release()
     _pressed = false;
 }
 
+void NullAction::saveConfig(libconfig::Setting &root)
+{
+    root.add("type", libconfig::Setting::TypeString) = "None";
+}
+
 uint8_t NullAction::reprogFlags() const
 {
     return backend::hidpp20::ReprogControls::TemporaryDiverted;

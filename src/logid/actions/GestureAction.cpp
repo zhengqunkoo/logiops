@@ -170,6 +170,11 @@ void GestureAction::move(int16_t x, int16_t y)
     _x = new_x; _y = new_y;
 }
 
+void GestureAction::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 uint8_t GestureAction::reprogFlags() const
 {
     return (hidpp20::ReprogControls::TemporaryDiverted |
@@ -254,6 +259,43 @@ GestureAction::Config::Config(Device* device, libconfig::Setting &root) :
     } catch(libconfig::SettingNotFoundException& e) {
         logPrintf(WARN, "Line %d: gestures is a required field, ignoring.",
                 root.getSourceLine());
+    }
+}
+
+void GestureAction::Config::save(libconfig::Setting &root)
+{
+    root.add("type", libconfig::Setting::TypeString) = "Gestures";
+
+    auto& gestures = root.add("gestures", libconfig::Setting::TypeList);
+
+    if(_none_action) {
+        auto& g_conf = gestures.add(libconfig::Setting::TypeGroup);
+        g_conf.add("direction", libconfig::Setting::TypeGroup) = "None";
+        auto& action_root = g_conf.add("action", libconfig::Setting::TypeGroup);
+        _none_action->saveConfig(action_root);
+    }
+
+    for(auto& g : _gestures) {
+        auto& g_conf = gestures.add(libconfig::Setting::TypeGroup);
+
+        auto& g_dir = g_conf.add("direction", libconfig::Setting::TypeString);
+        switch(g.first) {
+        case Up:
+            g_dir = "Up";
+            break;
+        case Down:
+            g_dir = "Down";
+            break;
+        case Left:
+            g_dir = "Left";
+            break;
+        case Right:
+            g_dir = "Right";
+            break;
+        case None: {}
+        }
+
+        g.second->saveConfig(g_conf);
     }
 }
 

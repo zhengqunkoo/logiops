@@ -31,6 +31,7 @@ namespace actions {
 
         virtual void press();
         virtual void release();
+        void saveConfig(libconfig::Setting& root) override;
 
         virtual uint8_t reprogFlags() const;
 
@@ -38,6 +39,7 @@ namespace actions {
         {
         public:
             explicit Config(Device* device, libconfig::Setting& root);
+            void save(libconfig::Setting& root) override;
             std::vector<uint>& keys();
         protected:
             std::vector<uint> _keys;

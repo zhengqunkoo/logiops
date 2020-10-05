@@ -51,6 +51,11 @@ void ToggleHiresScroll::release()
     _pressed = false;
 }
 
+void ToggleHiresScroll::saveConfig(libconfig::Setting& root)
+{
+    root.add("type", libconfig::Setting::TypeString) = "ToggleHiresScroll";
+}
+
 uint8_t ToggleHiresScroll::reprogFlags() const
 {
     return hidpp20::ReprogControls::TemporaryDiverted;

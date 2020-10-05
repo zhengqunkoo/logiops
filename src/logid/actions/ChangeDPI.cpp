@@ -35,6 +35,11 @@ ChangeDPI::ChangeDPI(Device *device, libconfig::Setting &setting) :
                   _device->hidpp20().deviceIndex());
 }
 
+void ChangeDPI::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 void ChangeDPI::press()
 {
     _pressed = true;
@@ -96,6 +101,13 @@ ChangeDPI::Config::Config(Device *device, libconfig::Setting &config) :
     } catch(libconfig::SettingNotFoundException& e) {
         // Ignore
     }
+}
+
+void ChangeDPI::Config::save(libconfig::Setting& root)
+{
+    root.add("type", libconfig::Setting::TypeString) = "ChangeDPI";
+    root.add("inc", libconfig::Setting::TypeInt) = _interval;
+    root.add("sensor", libconfig::Setting::TypeInt) = _sensor;
 }
 
 uint16_t ChangeDPI::Config::interval() const

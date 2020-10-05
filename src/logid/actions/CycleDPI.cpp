@@ -62,6 +62,11 @@ void CycleDPI::release()
     _pressed = false;
 }
 
+void CycleDPI::saveConfig(libconfig::Setting &root)
+{
+    _config.save(root);
+}
+
 uint8_t CycleDPI::reprogFlags() const
 {
     return backend::hidpp20::ReprogControls::TemporaryDiverted;
@@ -112,6 +117,15 @@ CycleDPI::Config::Config(Device *device, libconfig::Setting &config) :
         logPrintf(WARN, "Line %d: dpis is a required field, skipping.",
                 config.getSourceLine());
     }
+}
+
+void CycleDPI::Config::save(libconfig::Setting &root)
+{
+    root.add("type", libconfig::Setting::TypeString) = "CycleDPI";
+    root.add("sensor", libconfig::Setting::TypeInt) = _sensor;
+    auto& dpis = root.add("dpis", libconfig::Setting::TypeArray);
+    for(std::size_t i = 0; i < _dpis.size(); i++)
+        dpis.add(libconfig::Setting::TypeInt) = _dpis[i];
 }
 
 uint16_t CycleDPI::Config::nextDPI()

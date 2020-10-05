@@ -53,6 +53,11 @@ void ChangeHostAction::release()
     }
 }
 
+void ChangeHostAction::saveConfig(libconfig::Setting& root)
+{
+    _config.save(root);
+}
+
 uint8_t ChangeHostAction::reprogFlags() const
 {
     return hidpp20::ReprogControls::TemporaryDiverted;
@@ -101,6 +106,20 @@ ChangeHostAction::Config::Config(Device *device, libconfig::Setting& config)
                 config.getSourceLine());
         _offset = true;
         _host = 0;
+    }
+}
+
+void ChangeHostAction::Config::save(libconfig::Setting& root)
+{
+    root.add("type", libconfig::Setting::TypeString) = "ChangeHost";
+
+    if(_offset) {
+        if(_host == 1)
+            root.add("host", libconfig::Setting::TypeString) = "next";
+        if(_host == -1)
+            root.add("host", libconfig::Setting::TypeString) = "prev";
+    } else {
+        root.add("host", libconfig::Setting::TypeInt) = _host;
     }
 }
 

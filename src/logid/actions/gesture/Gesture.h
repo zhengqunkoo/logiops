@@ -45,6 +45,9 @@ namespace actions
         virtual void press() = 0;
         virtual void release(bool primary=false) = 0;
         virtual void move(int16_t axis) = 0;
+        virtual void saveConfig(libconfig::Setting&)
+        {
+        }
 
         virtual bool metThreshold() const = 0;
 
